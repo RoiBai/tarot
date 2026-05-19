@@ -43,7 +43,7 @@ For GitHub Pages project sites, set:
 VITE_BASE_PATH=/repository-name/
 ```
 
-The Vite config uses `base: process.env.VITE_BASE_PATH || "/"`, so local dev works with `/` and GitHub Pages can use the repository subpath.
+The Vite config uses `base: process.env.VITE_BASE_PATH || (process.env.GITHUB_ACTIONS ? "/tarot/" : "/")`, so local dev works with `/` and this repository's GitHub Pages build uses `/tarot/`. If you rename or fork the repository, set `VITE_BASE_PATH=/new-repository-name/`.
 
 ## API Key Safety
 
