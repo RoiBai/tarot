@@ -1,0 +1,11 @@
+node_modules
+dist
+.vite
+.env
+.env.local
+.env.*.local
+.env.local.txt
+.DS_Store
+.vscode
+.vs
+*.log

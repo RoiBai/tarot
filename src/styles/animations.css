@@ -1,0 +1,138 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(22px) rotate(-2deg) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(3%, -2%, 0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 22px rgba(214, 181, 109, 0.16);
+  }
+  50% {
+    box-shadow: 0 0 36px rgba(200, 189, 242, 0.2);
+  }
+}
+
+@keyframes originalDissolve {
+  0% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+    letter-spacing: 0;
+  }
+  100% {
+    opacity: 0.44;
+    filter: blur(0.7px);
+    transform: translateY(-2px);
+    letter-spacing: 0.02em;
+  }
+}
+
+@keyframes reframedReveal {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes particleDrift {
+  0% {
+    opacity: 0;
+    transform: translateY(2px) scale(0.96);
+  }
+  35% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-22px) scale(1.04);
+  }
+}
+
+@keyframes questionHeaderShift {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes anchorGlowIn {
+  from {
+    opacity: 0;
+    filter: blur(5px);
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 520ms ease both;
+}
+
+.intensity-minimal .star-field,
+.intensity-minimal .moon-phases {
+  opacity: 0.18;
+  animation: none;
+}
+
+.intensity-full-ritual .star-field {
+  opacity: 0.78;
+  animation-duration: 14s;
+}
+
+.intensity-full-ritual .tarot-card-visual,
+.intensity-full-ritual .camera-altar {
+  animation: pulseGlow 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "card-mediated-reflection",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "https://YOUR_USERNAME.github.io/YOUR_REPOSITORY_NAME/",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "deploy:gh-pages": "npm run build && gh-pages -d dist"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.39.4",
+    "gh-pages": "^6.3.0",
+    "globals": "^17.6.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.59.4"
+  }
+}
