@@ -1,4 +1,4 @@
-import type { ChatThread, Settings, SpreadCard } from "../types";
+import type { ChatThread, Settings, SpreadCard, WordAnchor } from "../types";
 
 const THREADS_KEY = "cmr.chatThreads";
 const SETTINGS_KEY = "cmr.settings";
@@ -10,8 +10,8 @@ export const defaultSettings: Settings = {
   layoutMode: "auto",
   visualIntensity: "mystical",
   apiKeyStorage: "local",
-  model: import.meta.env.VITE_OPENAI_MODEL || "gpt-4.1-mini",
-  baseUrl: import.meta.env.VITE_OPENAI_BASE_URL || "https://api.openai.com/v1"
+  model: import.meta.env.VITE_OPENAI_MODEL || "gpt-4o",
+  baseUrl: import.meta.env.VITE_OPENAI_BASE_URL || "https://api.shubiaobiao.com/v1"
 };
 
 const devEnvApiKey = import.meta.env.DEV ? import.meta.env.VITE_OPENAI_API_KEY || "" : "";
@@ -45,7 +45,16 @@ export function deleteThread(id: string): ChatThread[] {
 export function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    return raw ? { ...defaultSettings, ...(JSON.parse(raw) as Partial<Settings>) } : defaultSettings;
+    if (!raw) return defaultSettings;
+    const saved = JSON.parse(raw) as Partial<Settings>;
+    const next = { ...defaultSettings, ...saved };
+    if (!saved.model || saved.model === "gpt-4.1-mini" || saved.model === "gpt-4o-mini") {
+      next.model = defaultSettings.model;
+    }
+    if (!saved.baseUrl || saved.baseUrl === "https://api.openai.com/v1") {
+      next.baseUrl = defaultSettings.baseUrl;
+    }
+    return next;
   } catch {
     return defaultSettings;
   }
@@ -99,10 +108,15 @@ export function normalizeThread(thread: ChatThread & { cards?: string[] }): Chat
     return {
       ...thread,
       currentQuestion: thread.currentQuestion || thread.originalQuestion,
+      currentStage: thread.currentStage || inferStage(thread),
       questionHistory: Array.isArray(thread.questionHistory) ? thread.questionHistory : [],
+      operatingRules: Array.isArray(thread.operatingRules) ? thread.operatingRules : [],
       parchmentSummary: normalizeSummary(thread),
       spreadCards: normalizeSpreadCards(thread.spreadCards, thread.language),
-      wordAnchors: Array.isArray(thread.wordAnchors) ? thread.wordAnchors : [],
+      wordAnchors: normalizeWordAnchors(thread.wordAnchors),
+      openingSymbolSelection: thread.openingSymbolSelection,
+      randomnessReflections: Array.isArray(thread.randomnessReflections) ? thread.randomnessReflections : [],
+      usedGroundingEntryTypes: Array.isArray(thread.usedGroundingEntryTypes) ? thread.usedGroundingEntryTypes : [],
       askedQuestionIntents: normalizeAskedQuestionIntents(thread.askedQuestionIntents)
     };
   }
@@ -111,15 +125,21 @@ export function normalizeThread(thread: ChatThread & { cards?: string[] }): Chat
   return {
     ...thread,
     currentQuestion: thread.currentQuestion || thread.originalQuestion,
+    currentStage: thread.currentStage || inferStage(thread),
     questionHistory: Array.isArray(thread.questionHistory) ? thread.questionHistory : [],
+    operatingRules: Array.isArray(thread.operatingRules) ? thread.operatingRules : [],
     parchmentSummary: normalizeSummary(thread),
-    wordAnchors: Array.isArray(thread.wordAnchors) ? thread.wordAnchors : [],
+    wordAnchors: normalizeWordAnchors(thread.wordAnchors),
+    openingSymbolSelection: thread.openingSymbolSelection,
+    randomnessReflections: Array.isArray(thread.randomnessReflections) ? thread.randomnessReflections : [],
+    usedGroundingEntryTypes: Array.isArray(thread.usedGroundingEntryTypes) ? thread.usedGroundingEntryTypes : [],
     askedQuestionIntents: normalizeAskedQuestionIntents(thread.askedQuestionIntents),
     spreadCards: legacyCards.map((cardName, index) => ({
       id: `${thread.id}_legacy_card_${index + 1}`,
       order: index + 1,
       cardName,
       role: index === 0 ? firstLensRole(thread.language) : genericRole(thread.language, index + 1),
+      nodeType: index === 0 ? "first_symbol" : undefined,
       drawnAt: thread.createdAt,
       isActive: index === legacyCards.length - 1,
       userTurnCount: 0,
@@ -136,18 +156,28 @@ function normalizeSummary(thread: ChatThread & { cards?: string[] }): ChatThread
       ? thread.questionHistory
       : [];
   const currentQuestion = thread.parchmentSummary.currentQuestion || thread.currentQuestion || thread.originalQuestion;
+  const candidateFallback =
+    thread.parchmentSummary.smallQuestionToCarry ||
+    thread.parchmentSummary.finalQuestion ||
+    currentQuestion;
   const finalQuestionToCarry =
     thread.parchmentSummary.finalQuestionToCarry ||
     thread.parchmentSummary.userEditedFinalQuestion ||
     thread.parchmentSummary.selectedFinalQuestion ||
-    thread.parchmentSummary.smallQuestionToCarry ||
-    thread.parchmentSummary.finalQuestion ||
-    currentQuestion;
+    "";
   return {
     ...thread.parchmentSummary,
     type: "parchment_summary",
     originalQuestion: thread.parchmentSummary.originalQuestion || thread.originalQuestion,
     currentQuestion,
+    concreteScenes: Array.isArray(thread.parchmentSummary.concreteScenes) ? thread.parchmentSummary.concreteScenes : [],
+    operatingRules: Array.isArray(thread.parchmentSummary.operatingRules) ? thread.parchmentSummary.operatingRules : [],
+    cardDisruptions: Array.isArray(thread.parchmentSummary.cardDisruptions) ? thread.parchmentSummary.cardDisruptions : [],
+    selectedWordAnchors: Array.isArray(thread.parchmentSummary.selectedWordAnchors) ? thread.parchmentSummary.selectedWordAnchors : [],
+    spreadGrowthStory: Array.isArray(thread.parchmentSummary.spreadGrowthStory) ? thread.parchmentSummary.spreadGrowthStory : [],
+    firstRandomCard: thread.parchmentSummary.firstRandomCard || thread.spreadCards?.[0]?.cardName,
+    firstImpression: thread.parchmentSummary.firstImpression || thread.firstCardImpression?.impressionText,
+    randomnessReflectionSummary: thread.parchmentSummary.randomnessReflectionSummary || "",
     questionPath: Array.isArray(thread.parchmentSummary.questionPath)
       ? thread.parchmentSummary.questionPath
       : questionHistory.map((item) => ({
@@ -169,9 +199,9 @@ function normalizeSummary(thread: ChatThread & { cards?: string[] }): ChatThread
     finalQuestionCandidates: Array.isArray(thread.parchmentSummary.finalQuestionCandidates)
       ? thread.parchmentSummary.finalQuestionCandidates
       : [
-          { style: "gentle" as const, question: finalQuestionToCarry },
-          { style: "direct" as const, question: finalQuestionToCarry },
-          { style: "action-oriented" as const, question: finalQuestionToCarry }
+          { style: "gentle" as const, question: candidateFallback },
+          { style: "direct" as const, question: candidateFallback },
+          { style: "action-oriented" as const, question: candidateFallback }
         ],
     selectedFinalQuestion: thread.parchmentSummary.selectedFinalQuestion,
     userEditedFinalQuestion: thread.parchmentSummary.userEditedFinalQuestion,
@@ -195,8 +225,28 @@ function normalizeAskedQuestionIntents(value: unknown): ChatThread["askedQuestio
     .filter((item): item is ChatThread["askedQuestionIntents"][number] => Boolean(item && typeof item === "object"))
     .map((item) => ({
       ...item,
-      depthLevel: item.depthLevel || "scene"
+      depthLevel: item.depthLevel || "scene",
+      soraStage: item.soraStage || "scene"
     }));
+}
+
+function normalizeWordAnchors(value: unknown): WordAnchor[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is WordAnchor => Boolean(item && typeof item === "object" && typeof item.text === "string"))
+    .map((item) => ({
+      ...item,
+      stage: item.stage || "scene"
+    }));
+}
+
+function inferStage(thread: Partial<ChatThread>): ChatThread["currentStage"] {
+  if (thread.parchmentSummary) return "summary";
+  if (thread.firstCardImpression && !thread.questionHistory?.length) return "initial_connection";
+  if (thread.questionHistory?.length) return "agency";
+  if (thread.spreadCards?.length) return "resonant_disruption";
+  if (thread.operatingRules?.length) return "resonant_disruption";
+  return "scene";
 }
 
 function normalizeSpreadCards(cards: SpreadCard[], language: ChatThread["language"]): SpreadCard[] {
@@ -209,7 +259,11 @@ function normalizeSpreadCards(cards: SpreadCard[], language: ChatThread["languag
     drawnAt: card.drawnAt || new Date().toISOString(),
     isActive: cards.some((item) => item.isActive) ? index === activeIndex : index === fallbackActive,
     userTurnCount: typeof card.userTurnCount === "number" ? card.userTurnCount : 0,
-    aiQuestionCount: typeof card.aiQuestionCount === "number" ? card.aiQuestionCount : 0
+    aiQuestionCount: typeof card.aiQuestionCount === "number" ? card.aiQuestionCount : 0,
+    drawnFor: card.drawnFor || card.nodeLabel || card.role,
+    nodeLabel: card.nodeLabel || card.drawnFor || card.role,
+    nodeType: card.nodeType || (index === 0 ? "first_symbol" : undefined),
+    sourceAnchorId: card.sourceAnchorId
   }));
 }
 

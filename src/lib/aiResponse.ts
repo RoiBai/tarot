@@ -1,12 +1,53 @@
-import type { DepthLevel, QuestionIntent } from "../types";
+import type { CardNodeType, ConceptAnchorType, DepthLevel, FinalQuestionCandidate, QuestionIntent, SoraStage } from "../types";
+import { parseJsonObject, stripJsonCodeFence } from "./jsonParsing";
 
 export type ParsedAIResponse =
   | {
+      type: "sora_scene";
+      stage: "scene";
+      response?: string;
+      questionToUser?: string;
+      questionIntent?: QuestionIntent | null;
+      depthLevel?: DepthLevel | null;
+      builtFromUserWords?: string[];
+      nextAction?: NextAction;
+    }
+  | {
+      type: "sora_rule";
+      stage: "operating_rule";
+      possibleRules?: string[];
+      sourceUserWords?: string[];
+      builtFromUserWords?: string[];
+      response?: string;
+      nextAction?: NextAction;
+    }
+  | {
+      type: "sora_disruption";
+      stage: "resonant_disruption";
+      cardTitle?: string;
+      cardMeaning?: string;
+      operatingRule?: string;
+      disruption?: string;
+      resonanceOptions?: string[];
+      builtFromUserWords?: string[];
+      nextAction?: NextAction;
+    }
+  | {
+      type: "sora_agency";
+      stage: "agency";
+      response?: string;
+      questionCandidates?: FinalQuestionCandidate[];
+      builtFromUserWords?: string[];
+      nextAction?: NextAction;
+    }
+  | {
       type: "card_entry";
+      stage?: SoraStage;
       fromQuestion?: string;
       cardTitle?: string;
       cardRole?: string;
       cardMeaning?: string;
+      symbolConnection?: string;
       spreadConnection?: string;
       inCurrentQuestion?: string;
       inYourQuestion?: string;
@@ -18,17 +59,21 @@ export type ParsedAIResponse =
       newQuestion?: string;
       nextAction?: NextAction;
       suggestNextCard?: boolean;
+      suggestedNodeType?: CardNodeType;
+      suggestedNodeLabel?: string;
       suggestedNextCardRole?: string;
       suggestedNextCardReason?: string;
     }
   | {
       type: "follow_up";
+      stage?: SoraStage;
       fromQuestion?: string;
       cardTitle?: string;
       continuingWithCard?: string;
       response?: string;
       integratedUserAnswer?: string;
       wordAnchors?: string[];
+      conceptAnchors?: Array<{ text: string; type: ConceptAnchorType }>;
       optionalQuestion?: string;
       questionStyle?: QuestionStyle;
       questionIntent?: QuestionIntent | null;
@@ -37,11 +82,14 @@ export type ParsedAIResponse =
       reframedQuestion?: string;
       nextAction?: NextAction;
       suggestNextCard?: boolean;
+      suggestedNodeType?: CardNodeType;
+      suggestedNodeLabel?: string;
       suggestedNextCardRole?: string;
       suggestedNextCardReason?: string;
     }
   | {
       type: "resist";
+      stage?: SoraStage;
       response?: string;
       optionalQuestion?: string;
       questionStyle?: QuestionStyle;
@@ -51,6 +99,8 @@ export type ParsedAIResponse =
       reframedQuestion?: string;
       nextAction?: NextAction;
       suggestNextCard?: boolean;
+      suggestedNodeType?: CardNodeType;
+      suggestedNodeLabel?: string;
       suggestedNextCardRole?: string;
       suggestedNextCardReason?: string;
     }
@@ -82,7 +132,11 @@ export type NextAction =
   | "suggest_new_card_or_finish"
   | "suggest_finish"
   | "ask_user_to_clarify"
-  | "choose_word_anchor";
+  | "choose_word_anchor"
+  | "wait_for_user_response"
+  | "user_confirm_rule"
+  | "user_choose_resonance"
+  | "user_select_question";
 
 export type QuestionStyle =
   | "recent_moment"
@@ -91,14 +145,11 @@ export type QuestionStyle =
   | "trigger"
   | "avoidance"
   | "choice"
+  | "time"
   | "none";
 
 function stripCodeFence(value: string): string {
-  return value
-    .trim()
-    .replace(/^```(?:json)?/i, "")
-    .replace(/```$/i, "")
-    .trim();
+  return stripJsonCodeFence(value);
 }
 
 function stringOrUndefined(value: unknown): string | undefined {
@@ -124,7 +175,22 @@ function nextActionOrUndefined(value: unknown): NextAction | undefined {
     value === "suggest_new_card_or_finish" ||
     value === "suggest_finish" ||
     value === "ask_user_to_clarify" ||
-    value === "choose_word_anchor"
+    value === "choose_word_anchor" ||
+    value === "wait_for_user_response" ||
+    value === "user_confirm_rule" ||
+    value === "user_choose_resonance" ||
+    value === "user_select_question"
+    ? value
+    : undefined;
+}
+
+function soraStageOrUndefined(value: unknown): SoraStage | undefined {
+  return value === "initial_connection" ||
+    value === "scene" ||
+    value === "operating_rule" ||
+    value === "resonant_disruption" ||
+    value === "agency" ||
+    value === "summary"
     ? value
     : undefined;
 }
@@ -136,13 +202,89 @@ function questionStyleOrUndefined(value: unknown): QuestionStyle | undefined {
     value === "trigger" ||
     value === "avoidance" ||
     value === "choice" ||
+    value === "time" ||
     value === "none"
     ? value
     : undefined;
 }
 
+function unescapeJsonString(value: string): string | undefined {
+  try {
+    return JSON.parse(`"${value.replace(/\r?\n/g, "\\n")}"`);
+  } catch {
+    return value.replace(/\\"/g, '"').replace(/\\n/g, "\n").trim() || undefined;
+  }
+}
+
+function looseStringField(content: string, field: string): string | undefined {
+  const pattern = new RegExp(`"${field}"\\s*:\\s*"((?:\\\\.|[^"\\\\])*)"`, "s");
+  const match = content.match(pattern);
+  return match?.[1] ? unescapeJsonString(match[1]) : undefined;
+}
+
+function looseArrayField(content: string, field: string): string[] | undefined {
+  const pattern = new RegExp(`"${field}"\\s*:\\s*\\[([\\s\\S]*?)\\]`, "s");
+  const match = content.match(pattern);
+  if (!match?.[1]) return undefined;
+  const items = [...match[1].matchAll(/"((?:\\.|[^"\\])*)"/g)]
+    .map((item) => unescapeJsonString(item[1]) || "")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return items.length ? items : undefined;
+}
+
+function parseLooseRitualResponse(content: string): ParsedAIResponse | null {
+  const stripped = stripCodeFence(content);
+  if (!/^\s*\{/.test(stripped) || !/"type"\s*:/.test(stripped)) return null;
+  const type = looseStringField(stripped, "type");
+  if (type === "follow_up") {
+    return {
+      type: "follow_up",
+      stage: soraStageOrUndefined(looseStringField(stripped, "stage")),
+      fromQuestion: looseStringField(stripped, "fromQuestion"),
+      cardTitle: looseStringField(stripped, "cardTitle"),
+      continuingWithCard: looseStringField(stripped, "continuingWithCard"),
+      response: looseStringField(stripped, "response"),
+      integratedUserAnswer: looseStringField(stripped, "integratedUserAnswer"),
+      wordAnchors: looseArrayField(stripped, "wordAnchors"),
+      optionalQuestion: looseStringField(stripped, "optionalQuestion"),
+      questionStyle: questionStyleOrUndefined(looseStringField(stripped, "questionStyle")),
+      questionIntent: questionIntentOrNull(looseStringField(stripped, "questionIntent")),
+      depthLevel: depthLevelOrNull(looseStringField(stripped, "depthLevel")),
+      builtFromUserWords: looseArrayField(stripped, "builtFromUserWords"),
+      reframedQuestion: looseStringField(stripped, "reframedQuestion"),
+      nextAction: nextActionOrUndefined(looseStringField(stripped, "nextAction")),
+      suggestedNextCardRole: looseStringField(stripped, "suggestedNextCardRole"),
+      suggestedNextCardReason: looseStringField(stripped, "suggestedNextCardReason")
+    };
+  }
+  if (type === "card_entry") {
+    return {
+      type: "card_entry",
+      stage: soraStageOrUndefined(looseStringField(stripped, "stage")),
+      cardTitle: looseStringField(stripped, "cardTitle"),
+      cardRole: looseStringField(stripped, "cardRole"),
+      cardMeaning: looseStringField(stripped, "cardMeaning"),
+      symbolConnection: looseStringField(stripped, "symbolConnection"),
+      spreadConnection: looseStringField(stripped, "spreadConnection"),
+      inCurrentQuestion: looseStringField(stripped, "inCurrentQuestion"),
+      inYourQuestion: looseStringField(stripped, "inYourQuestion"),
+      questionToUser: looseStringField(stripped, "questionToUser"),
+      questionIntent: questionIntentOrNull(looseStringField(stripped, "questionIntent")),
+      depthLevel: depthLevelOrNull(looseStringField(stripped, "depthLevel")),
+      builtFromUserWords: looseArrayField(stripped, "builtFromUserWords"),
+      reframedQuestion: looseStringField(stripped, "reframedQuestion"),
+      nextAction: nextActionOrUndefined(looseStringField(stripped, "nextAction")),
+      suggestedNextCardRole: looseStringField(stripped, "suggestedNextCardRole"),
+      suggestedNextCardReason: looseStringField(stripped, "suggestedNextCardReason")
+    };
+  }
+  return null;
+}
+
 function questionIntentOrNull(value: unknown): QuestionIntent | null | undefined {
-  return value === "recent_scene" ||
+  return value === "symbol_question_connection" ||
+    value === "recent_scene" ||
     value === "body_reaction" ||
     value === "trigger_event" ||
     value === "hidden_rule" ||
@@ -182,18 +324,131 @@ function depthLevelOrNull(value: unknown): DepthLevel | null | undefined {
       : undefined;
 }
 
+function cardNodeTypeOrUndefined(value: unknown): CardNodeType | undefined {
+  return value === "first_symbol" ||
+    value === "word_anchor" ||
+    value === "hidden_rule" ||
+    value === "resistance" ||
+    value === "unclear_part" ||
+    value === "missing_voice" ||
+    value === "contradiction" ||
+    value === "possible_shift" ||
+    value === "user_requested_angle" ||
+    value === "carry_forward"
+    ? value
+    : undefined;
+}
+
+function conceptAnchorTypeOrOther(value: unknown): ConceptAnchorType {
+  return value === "emotion" ||
+    value === "behavior" ||
+    value === "relationship" ||
+    value === "self_judgment" ||
+    value === "body" ||
+    value === "time" ||
+    value === "conflict" ||
+    value === "rule" ||
+    value === "loss_of_control" ||
+    value === "action_block" ||
+    value === "other"
+    ? value
+    : "other";
+}
+
+function conceptAnchorArrayOrUndefined(value: unknown): Array<{ text: string; type: ConceptAnchorType }> | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const items = value
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const record = item as Record<string, unknown>;
+      const text = stringOrUndefined(record.text);
+      if (!text) return null;
+      return { text, type: conceptAnchorTypeOrOther(record.type) };
+    })
+    .filter((item): item is { text: string; type: ConceptAnchorType } => Boolean(item));
+  return items.length ? items : undefined;
+}
+
 export function parseRitualAIResponse(content: string): ParsedAIResponse | null {
   try {
-    const parsed = JSON.parse(stripCodeFence(content)) as Record<string, unknown>;
-    if (!parsed || typeof parsed !== "object") return null;
+    const parsed = parseJsonObject(content);
+    if (!parsed || typeof parsed !== "object") return parseLooseRitualResponse(content);
+
+    if (parsed.type === "sora_scene") {
+      return {
+        type: "sora_scene",
+        stage: "scene",
+        response: stringOrUndefined(parsed.response),
+        questionToUser: stringOrUndefined(parsed.questionToUser),
+        questionIntent: questionIntentOrNull(parsed.questionIntent),
+        depthLevel: depthLevelOrNull(parsed.depthLevel),
+        builtFromUserWords: stringArrayOrUndefined(parsed.builtFromUserWords),
+        nextAction: nextActionOrUndefined(parsed.nextAction)
+      };
+    }
+
+    if (parsed.type === "sora_rule") {
+      return {
+        type: "sora_rule",
+        stage: "operating_rule",
+        possibleRules: stringArrayOrUndefined(parsed.possibleRules),
+        sourceUserWords: stringArrayOrUndefined(parsed.sourceUserWords),
+        builtFromUserWords: stringArrayOrUndefined(parsed.builtFromUserWords),
+        response: stringOrUndefined(parsed.response),
+        nextAction: nextActionOrUndefined(parsed.nextAction)
+      };
+    }
+
+    if (parsed.type === "sora_disruption") {
+      return {
+        type: "sora_disruption",
+        stage: "resonant_disruption",
+        cardTitle: stringOrUndefined(parsed.cardTitle),
+        cardMeaning: stringOrUndefined(parsed.cardMeaning),
+        operatingRule: stringOrUndefined(parsed.operatingRule),
+        disruption: stringOrUndefined(parsed.disruption),
+        resonanceOptions: stringArrayOrUndefined(parsed.resonanceOptions),
+        builtFromUserWords: stringArrayOrUndefined(parsed.builtFromUserWords),
+        nextAction: nextActionOrUndefined(parsed.nextAction)
+      };
+    }
+
+    if (parsed.type === "sora_agency") {
+      const questionCandidates: FinalQuestionCandidate[] | undefined = Array.isArray(parsed.questionCandidates)
+        ? parsed.questionCandidates
+            .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
+            .map((item, index): FinalQuestionCandidate => ({
+              style:
+                item.style === "direct" || item.style === "action-oriented" || item.style === "gentle"
+                  ? item.style
+                  : index === 1
+                    ? "direct"
+                    : index === 2
+                      ? "action-oriented"
+                      : "gentle",
+              question: stringOrUndefined(item.question) || ""
+            }))
+            .filter((item) => item.question)
+        : undefined;
+      return {
+        type: "sora_agency",
+        stage: "agency",
+        response: stringOrUndefined(parsed.response),
+        questionCandidates,
+        builtFromUserWords: stringArrayOrUndefined(parsed.builtFromUserWords),
+        nextAction: nextActionOrUndefined(parsed.nextAction)
+      };
+    }
 
     if (parsed.type === "card_entry") {
       return {
         type: "card_entry",
+        stage: soraStageOrUndefined(parsed.stage),
         fromQuestion: stringOrUndefined(parsed.fromQuestion),
         cardTitle: stringOrUndefined(parsed.cardTitle),
         cardRole: stringOrUndefined(parsed.cardRole),
         cardMeaning: stringOrUndefined(parsed.cardMeaning),
+        symbolConnection: stringOrUndefined(parsed.symbolConnection),
         spreadConnection: stringOrUndefined(parsed.spreadConnection),
         inCurrentQuestion: stringOrUndefined(parsed.inCurrentQuestion),
         inYourQuestion: stringOrUndefined(parsed.inYourQuestion),
@@ -205,6 +460,8 @@ export function parseRitualAIResponse(content: string): ParsedAIResponse | null 
         newQuestion: stringOrUndefined(parsed.newQuestion),
         nextAction: nextActionOrUndefined(parsed.nextAction),
         suggestNextCard: booleanOrUndefined(parsed.suggestNextCard),
+        suggestedNodeType: cardNodeTypeOrUndefined(parsed.suggestedNodeType),
+        suggestedNodeLabel: stringOrUndefined(parsed.suggestedNodeLabel),
         suggestedNextCardRole: stringOrUndefined(parsed.suggestedNextCardRole),
         suggestedNextCardReason: stringOrUndefined(parsed.suggestedNextCardReason)
       };
@@ -213,12 +470,14 @@ export function parseRitualAIResponse(content: string): ParsedAIResponse | null 
     if (parsed.type === "follow_up") {
       return {
         type: "follow_up",
+        stage: soraStageOrUndefined(parsed.stage),
         fromQuestion: stringOrUndefined(parsed.fromQuestion),
         cardTitle: stringOrUndefined(parsed.cardTitle),
         continuingWithCard: stringOrUndefined(parsed.continuingWithCard),
         response: stringOrUndefined(parsed.response),
         integratedUserAnswer: stringOrUndefined(parsed.integratedUserAnswer),
         wordAnchors: stringArrayOrUndefined(parsed.wordAnchors),
+        conceptAnchors: conceptAnchorArrayOrUndefined(parsed.conceptAnchors),
         optionalQuestion: stringOrUndefined(parsed.optionalQuestion),
         questionStyle: questionStyleOrUndefined(parsed.questionStyle),
         questionIntent: questionIntentOrNull(parsed.questionIntent),
@@ -227,6 +486,8 @@ export function parseRitualAIResponse(content: string): ParsedAIResponse | null 
         reframedQuestion: stringOrUndefined(parsed.reframedQuestion),
         nextAction: nextActionOrUndefined(parsed.nextAction),
         suggestNextCard: booleanOrUndefined(parsed.suggestNextCard),
+        suggestedNodeType: cardNodeTypeOrUndefined(parsed.suggestedNodeType),
+        suggestedNodeLabel: stringOrUndefined(parsed.suggestedNodeLabel),
         suggestedNextCardRole: stringOrUndefined(parsed.suggestedNextCardRole),
         suggestedNextCardReason: stringOrUndefined(parsed.suggestedNextCardReason)
       };
@@ -235,6 +496,7 @@ export function parseRitualAIResponse(content: string): ParsedAIResponse | null 
     if (parsed.type === "resist") {
       return {
         type: "resist",
+        stage: soraStageOrUndefined(parsed.stage),
         response: stringOrUndefined(parsed.response),
         optionalQuestion: stringOrUndefined(parsed.optionalQuestion),
         questionStyle: questionStyleOrUndefined(parsed.questionStyle),
@@ -244,6 +506,8 @@ export function parseRitualAIResponse(content: string): ParsedAIResponse | null 
         reframedQuestion: stringOrUndefined(parsed.reframedQuestion),
         nextAction: nextActionOrUndefined(parsed.nextAction),
         suggestNextCard: booleanOrUndefined(parsed.suggestNextCard),
+        suggestedNodeType: cardNodeTypeOrUndefined(parsed.suggestedNodeType),
+        suggestedNodeLabel: stringOrUndefined(parsed.suggestedNodeLabel),
         suggestedNextCardRole: stringOrUndefined(parsed.suggestedNextCardRole),
         suggestedNextCardReason: stringOrUndefined(parsed.suggestedNextCardReason)
       };
@@ -281,6 +545,6 @@ export function parseRitualAIResponse(content: string): ParsedAIResponse | null 
 
     return null;
   } catch {
-    return null;
+    return parseLooseRitualResponse(content);
   }
 }

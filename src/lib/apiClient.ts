@@ -1,4 +1,4 @@
-import type { AskedQuestionIntent, ChatMessage, Language, ParchmentSummary, QuestionTransform, SpreadCard, WordAnchor } from "../types";
+import type { AskedQuestionIntent, ChatMessage, ConceptAnchor, FirstCardImpression, Language, OperatingRule, ParchmentSummary, QuestionTransform, RandomnessReflection, SoraStage, SpreadCard, SymbolSelection, UsedGroundingEntryType, WordAnchor } from "../types";
 import {
   buildContextPrompt,
   buildSummaryPrompt,
@@ -6,6 +6,7 @@ import {
   SYSTEM_PROMPT,
   type EventType
 } from "./promptBuilder";
+import { parseJsonObject } from "./jsonParsing";
 
 export type AIRequest = {
   apiKey: string;
@@ -14,10 +15,17 @@ export type AIRequest = {
   language: Language;
   originalQuestion: string;
   currentQuestion: string;
+  currentStage: SoraStage;
+  firstCardImpression?: FirstCardImpression;
+  openingSymbolSelection?: SymbolSelection;
   questionHistory: QuestionTransform[];
+  operatingRules?: OperatingRule[];
   currentCard: string;
   spreadCards: SpreadCard[];
   wordAnchors?: WordAnchor[];
+  conceptAnchors?: ConceptAnchor[];
+  randomnessReflections?: RandomnessReflection[];
+  usedGroundingEntryTypes?: UsedGroundingEntryType[];
   askedQuestionIntents?: AskedQuestionIntent[];
   chatHistory: ChatMessage[];
   latestUserMessage?: string;
@@ -31,14 +39,195 @@ export type SummaryRequest = {
   language: Language;
   originalQuestion: string;
   currentQuestion: string;
+  currentStage?: SoraStage;
+  firstCardImpression?: FirstCardImpression;
+  openingSymbolSelection?: SymbolSelection;
   questionHistory: QuestionTransform[];
+  operatingRules?: OperatingRule[];
   spreadCards: SpreadCard[];
   wordAnchors?: WordAnchor[];
+  randomnessReflections?: RandomnessReflection[];
   chatHistory: ChatMessage[];
 };
 
 function friendlyError(language: Language, message: string): Error {
   return new Error(message || (language === "zh" ? "AI 请求失败，请稍后再试。" : "The AI request failed. Please try again."));
+}
+
+function parseSummaryJson(content: string): Partial<ParchmentSummary> | null {
+  return parseJsonObject(content) as Partial<ParchmentSummary> | null;
+}
+
+function buildFallbackParchmentSummary(request: SummaryRequest): ParchmentSummary {
+  const zh = request.language === "zh";
+  const userLines = request.chatHistory
+    .filter((message) => message.role === "user")
+    .map((message) => message.content.trim())
+    .filter(Boolean);
+  const firstCard = request.spreadCards[0];
+  const selectedCardKeywords = request.spreadCards
+    .map((card) => card.selectedCardKeyword)
+    .filter((keyword): keyword is string => Boolean(keyword));
+  const selectedWordAnchors = [
+    ...(request.wordAnchors || []).filter((anchor) => anchor.selected).map((anchor) => anchor.text),
+    ...selectedCardKeywords
+  ];
+  const questionPath = request.questionHistory.length
+    ? request.questionHistory.map((item) => ({ from: item.fromQuestion, to: item.toQuestion, why: item.reason }))
+    : request.originalQuestion !== request.currentQuestion
+      ? [
+          {
+            from: request.originalQuestion,
+            to: request.currentQuestion,
+            why: zh ? "对话里逐渐靠近的新说法。" : "A newer wording that emerged in the conversation."
+          }
+        ]
+      : [];
+  const spreadGrowthStory = request.spreadCards.map((card) => ({
+    order: card.order,
+    cardName: card.cardName,
+    drawnFor: card.drawnFor || card.reason || card.role,
+    nodeType: card.nodeType,
+    nodeLabel: card.nodeLabel
+  }));
+  const firstImpression = request.openingSymbolSelection
+    ? `${request.openingSymbolSelection.symbolLabel} -> ${
+        request.openingSymbolSelection.customMeaning || request.openingSymbolSelection.selectedDirection || ""
+      }`
+    : request.firstCardImpression?.impressionText || "";
+  const smallPieces = buildFallbackSmallPieces(request, userLines, selectedWordAnchors);
+  const finalQuestionCandidates = buildFallbackQuestionCandidates(request.language, request.currentQuestion);
+
+  return {
+    type: "parchment_summary",
+    originalQuestion: request.originalQuestion,
+    currentQuestion: request.currentQuestion,
+    questionPath,
+    concreteScenes: userLines.slice(-3),
+    operatingRules: (request.operatingRules || []).map((rule) => rule.text),
+    cardDisruptions: request.spreadCards.map((card) =>
+      zh
+        ? `${card.cardName}以“${card.selectedCardKeyword || card.drawnFor || card.role}”进入了这次问题。`
+        : `${card.cardName} entered through "${card.selectedCardKeyword || card.drawnFor || card.role}".`
+    ),
+    selectedWordAnchors,
+    spreadGrowthStory,
+    firstRandomCard: firstCard?.cardName,
+    firstImpression,
+    randomnessReflectionSummary: summarizeFallbackRandomness(request),
+    finalCurrentQuestion: request.currentQuestion,
+    smallPieces,
+    connection: zh
+      ? "这份总结是根据已有对话先整理出的版本。它不替你下结论，只把已经出现过的牌、词和问题放回同一张纸上。"
+      : "This summary was gathered from the conversation already on the page. It does not close the question; it places the cards, words, and current question together.",
+    finalQuestionCandidates,
+    selectedFinalQuestion: undefined,
+    userEditedFinalQuestion: undefined,
+    finalQuestionToCarry: "",
+    smallQuestionToCarry: request.currentQuestion,
+    gentleSuggestion: zh
+      ? "先选一个最小的部分照顾它，不急着把整件事一次说完。"
+      : "Choose one small part to tend first; the whole question does not need to be solved at once.",
+    questionHistory: request.questionHistory,
+    cards: request.spreadCards,
+    keyUserReflections: userLines.slice(-6),
+    emergingPattern: "",
+    finalQuestion: request.currentQuestion,
+    encouragement: zh ? "可以从一个很小的动作开始。" : "You can begin with one very small movement.",
+    createdAt: new Date().toISOString()
+  };
+}
+
+function buildFallbackSmallPieces(request: SummaryRequest, userLines: string[], selectedAnchors: string[]): ParchmentSummary["smallPieces"] {
+  const zh = request.language === "zh";
+  const pieces: ParchmentSummary["smallPieces"] = [];
+  const lastUserLine = userLines[userLines.length - 1];
+  const firstCard = request.spreadCards[0];
+
+  if (firstCard) {
+    pieces.push({
+      kind: "card_insight",
+      text: zh
+        ? `第一张牌是「${firstCard.cardName}」，它先给问题开了一个入口。`
+        : `The first card was ${firstCard.cardName}; it opened the first doorway into the question.`,
+      source: "first_card",
+      sourceWords: [firstCard.cardName]
+    });
+  }
+
+  if (request.openingSymbolSelection) {
+    pieces.push({
+      kind: "word_anchor",
+      text: zh
+        ? `你先注意到「${request.openingSymbolSelection.symbolLabel}」。`
+        : `You first noticed "${request.openingSymbolSelection.symbolLabel}."`,
+      source: "opening_symbol",
+      sourceWords: [request.openingSymbolSelection.symbolLabel]
+    });
+  }
+
+  if (lastUserLine) {
+    pieces.push({
+      kind: "small_answer",
+      text: zh
+        ? `你最后留下的一句话是：“${trimForSummary(lastUserLine)}”。`
+        : `One of your last sentences was: "${trimForSummary(lastUserLine)}."`,
+      source: "user_words",
+      sourceWords: selectedAnchors.slice(0, 3)
+    });
+  }
+
+  selectedAnchors.slice(0, 3).forEach((anchor) => {
+    pieces.push({
+      kind: "word_anchor",
+      text: zh ? `「${anchor}」是这次对话里被留下的词。` : `"${anchor}" is one of the words left in this conversation.`,
+      source: "anchor",
+      sourceWords: [anchor]
+    });
+  });
+
+  while (pieces.length < 3) {
+    pieces.push({
+      kind: "small_question",
+      text: zh ? `当前可以继续带着的问题是：“${request.currentQuestion}”。` : `The question to carry for now is: "${request.currentQuestion}."`,
+      source: "current_question",
+      sourceWords: []
+    });
+  }
+
+  return pieces.slice(0, 6);
+}
+
+function buildFallbackQuestionCandidates(language: Language, currentQuestion: string): ParchmentSummary["finalQuestionCandidates"] {
+  if (language === "zh") {
+    return [
+      { style: "gentle", question: currentQuestion },
+      { style: "direct", question: "这件事里，哪一部分已经不能再用原来的方式撑着？" },
+      { style: "action-oriented", question: "今天我可以先让哪一个很小的部分变轻一点？" }
+    ];
+  }
+
+  return [
+    { style: "gentle", question: currentQuestion },
+    { style: "direct", question: "What part of this can no longer be held in the old way?" },
+    { style: "action-oriented", question: "What is one small part I can make lighter today?" }
+  ];
+}
+
+function summarizeFallbackRandomness(request: SummaryRequest): string {
+  const zh = request.language === "zh";
+  if (!request.randomnessReflections?.length) {
+    return zh ? "这次没有记录明确的随机性反馈。" : "No explicit randomness checkpoint was recorded in this chat.";
+  }
+
+  const latest = request.randomnessReflections[request.randomnessReflections.length - 1];
+  return zh
+    ? `最后一次随机性反馈记录为：${latest.perceivedConnection}${latest.helpedShift ? ` / ${latest.helpedShift}` : ""}。`
+    : `The latest randomness checkpoint was recorded as: ${latest.perceivedConnection}${latest.helpedShift ? ` / ${latest.helpedShift}` : ""}.`;
+}
+
+function trimForSummary(text: string): string {
+  return text.length > 80 ? `${text.slice(0, 78)}...` : text;
 }
 
 async function postChatCompletion(request: AIRequest, useJsonFormat: boolean): Promise<Response> {
@@ -76,7 +265,7 @@ async function postSummaryCompletion(request: SummaryRequest, useJsonFormat: boo
       { role: "user", content: buildSummaryPrompt(request) }
     ],
     temperature: 0.72,
-    max_tokens: 800
+    max_tokens: 1800
   };
 
   if (useJsonFormat) {
@@ -215,7 +404,10 @@ export async function generateParchmentSummary(request: SummaryRequest): Promise
   }
 
   try {
-    const parsed = JSON.parse(content.trim().replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim()) as Partial<ParchmentSummary>;
+    const parsed = parseSummaryJson(content);
+    if (!parsed) {
+      return buildFallbackParchmentSummary(request);
+    }
     const smallPieces = Array.isArray(parsed.smallPieces)
       ? parsed.smallPieces
           .filter((item) => item && typeof item === "object" && typeof item.text === "string")
@@ -267,13 +459,31 @@ export async function generateParchmentSummary(request: SummaryRequest): Promise
       originalQuestion: parsed.originalQuestion || request.originalQuestion,
       currentQuestion,
       questionPath,
+      concreteScenes: Array.isArray(parsed.concreteScenes) ? parsed.concreteScenes.filter((item): item is string => typeof item === "string") : [],
+      operatingRules: Array.isArray(parsed.operatingRules) ? parsed.operatingRules.filter((item): item is string => typeof item === "string") : [],
+      cardDisruptions: Array.isArray(parsed.cardDisruptions) ? parsed.cardDisruptions.filter((item): item is string => typeof item === "string") : [],
+      selectedWordAnchors: Array.isArray(parsed.selectedWordAnchors) ? parsed.selectedWordAnchors.filter((item): item is string => typeof item === "string") : [],
+      spreadGrowthStory: Array.isArray(parsed.spreadGrowthStory) ? parsed.spreadGrowthStory : request.spreadCards.map((card) => ({
+        order: card.order,
+        cardName: card.cardName,
+        drawnFor: card.drawnFor || card.role,
+        nodeType: card.nodeType,
+        nodeLabel: card.nodeLabel
+      })),
+      firstRandomCard: parsed.firstRandomCard || request.spreadCards[0]?.cardName,
+      firstImpression:
+        parsed.firstImpression ||
+        (request.openingSymbolSelection
+          ? `${request.openingSymbolSelection.symbolLabel} -> ${request.openingSymbolSelection.customMeaning || request.openingSymbolSelection.selectedDirection || ""}`
+          : request.firstCardImpression?.impressionText),
+      randomnessReflectionSummary: parsed.randomnessReflectionSummary || "",
       finalCurrentQuestion: parsed.finalCurrentQuestion || currentQuestion,
       smallPieces,
       connection: parsed.connection || "",
       finalQuestionCandidates,
-      selectedFinalQuestion: parsed.selectedFinalQuestion,
-      userEditedFinalQuestion: parsed.userEditedFinalQuestion,
-      finalQuestionToCarry: parsed.finalQuestionToCarry || parsed.selectedFinalQuestion || parsed.userEditedFinalQuestion || "",
+      selectedFinalQuestion: undefined,
+      userEditedFinalQuestion: undefined,
+      finalQuestionToCarry: "",
       smallQuestionToCarry: fallbackQuestion,
       gentleSuggestion: parsed.gentleSuggestion || "",
       questionHistory: request.questionHistory,
@@ -285,9 +495,6 @@ export async function generateParchmentSummary(request: SummaryRequest): Promise
       createdAt: new Date().toISOString()
     };
   } catch {
-    throw friendlyError(
-      request.language,
-      request.language === "zh" ? "总结 JSON 无法解析。" : "The summary JSON could not be parsed."
-    );
+    return buildFallbackParchmentSummary(request);
   }
 }

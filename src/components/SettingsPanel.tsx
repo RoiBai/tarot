@@ -32,17 +32,6 @@ export default function SettingsPanel({ settings, onChange, onClose }: Props) {
           </label>
 
           <label>
-            {String(text.cameraMode)}
-            <select
-              value={settings.cameraEnabled ? "on" : "off"}
-              onChange={(event) => onChange({ ...settings, cameraEnabled: event.target.value === "on" })}
-            >
-              <option value="on">{String(text.cameraOn)}</option>
-              <option value="off">{String(text.cameraManual)}</option>
-            </select>
-          </label>
-
-          <label>
             {String(text.layoutPreview)}
             <select
               value={settings.layoutMode}
@@ -81,7 +70,7 @@ export default function SettingsPanel({ settings, onChange, onClose }: Props) {
             <input
               value={settings.model}
               onChange={(event) => onChange({ ...settings, model: event.target.value })}
-              placeholder="gpt-4.1-mini"
+              placeholder="gpt-4o"
             />
           </label>
 
@@ -90,7 +79,7 @@ export default function SettingsPanel({ settings, onChange, onClose }: Props) {
             <input
               value={settings.baseUrl}
               onChange={(event) => onChange({ ...settings, baseUrl: event.target.value })}
-              placeholder="https://api.openai.com/v1"
+              placeholder="https://api.shubiaobiao.com/v1"
             />
           </label>
         </div>

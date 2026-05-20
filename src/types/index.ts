@@ -2,6 +2,40 @@ export type Language = "en" | "zh";
 
 export type ChatRole = "user" | "assistant" | "card" | "system";
 
+export type SoraStage = "initial_connection" | "scene" | "operating_rule" | "resonant_disruption" | "agency" | "summary";
+
+export type InteractionState =
+  | "breathing"
+  | "question_entry"
+  | "opening_major_arcana"
+  | "opening_symbol_selection"
+  | "chat"
+  | "drawing_new_card"
+  | "new_card_keyword_selection"
+  | "pushback"
+  | "reflection_scroll";
+
+export type ActiveTask =
+  | "answer_ai_question"
+  | "choose_word_anchor"
+  | "choose_card_keyword"
+  | "draw_new_card"
+  | "pushback"
+  | "summary"
+  | "idle";
+
+export type CardNodeType =
+  | "first_symbol"
+  | "word_anchor"
+  | "hidden_rule"
+  | "resistance"
+  | "unclear_part"
+  | "missing_voice"
+  | "contradiction"
+  | "possible_shift"
+  | "user_requested_angle"
+  | "carry_forward";
+
 export type ChatMessage = {
   id: string;
   role: ChatRole;
@@ -15,11 +49,19 @@ export type ChatMessage = {
 
 export type SpreadCard = {
   id: string;
+  deckCardId?: string;
   order: number;
   cardName: string;
   cardNameZh?: string;
   role: string;
   reason?: string;
+  nodeType?: CardNodeType;
+  nodeLabel?: string;
+  drawnFor?: string;
+  sourceAnchorId?: string;
+  cardKeywords?: string[];
+  selectedCardKeyword?: string;
+  cardMismatchReason?: string;
   drawnAt: string;
   isActive: boolean;
   userTurnCount: number;
@@ -30,12 +72,22 @@ export type WordAnchor = {
   id: string;
   text: string;
   sourceMessageId: string;
-  cardId: string;
+  cardId?: string;
+  stage: SoraStage;
   selected: boolean;
   createdAt: string;
 };
 
+export type OperatingRule = {
+  id: string;
+  text: string;
+  sourceUserWords: string[];
+  confirmedByUser: boolean;
+  createdAt: string;
+};
+
 export type QuestionIntent =
+  | "symbol_question_connection"
   | "recent_scene"
   | "body_reaction"
   | "trigger_event"
@@ -59,11 +111,56 @@ export type QuestionIntent =
   | "clarification"
   | "other";
 
+export type GroundingEntryType =
+  | "recent_scene"
+  | "body_signal"
+  | "trigger_object"
+  | "relationship_actor"
+  | "repeated_word"
+  | "avoidance_moment"
+  | "comparison_target"
+  | "choice_block"
+  | "environment"
+  | "time_pattern"
+  | "unnamed_part"
+  | "card_impression";
+
+export type UsedGroundingEntryType = {
+  type: GroundingEntryType;
+  questionText: string;
+  cardId?: string;
+  createdAt: string;
+};
+
+export type ConceptAnchorType =
+  | "emotion"
+  | "behavior"
+  | "relationship"
+  | "self_judgment"
+  | "body"
+  | "time"
+  | "conflict"
+  | "rule"
+  | "loss_of_control"
+  | "action_block"
+  | "other";
+
+export type ConceptAnchor = {
+  id: string;
+  text: string;
+  type: ConceptAnchorType;
+  sourceMessageId: string;
+  cardId?: string;
+  selected?: boolean;
+  createdAt: string;
+};
+
 export type DepthLevel = "scene" | "structure" | "self_relation" | "integration" | "summary";
 
 export type AskedQuestionIntent = {
   intent: QuestionIntent;
   depthLevel: DepthLevel;
+  soraStage: SoraStage;
   questionText: string;
   cardId?: string;
   createdAt: string;
@@ -76,6 +173,7 @@ export type QuestionTransform = {
   reason?: string;
   cardName?: string;
   cardRole?: string;
+  operatingRule?: string;
   createdAt: string;
 };
 
@@ -106,11 +204,53 @@ export type FinalQuestionCandidate = {
   question: string;
 };
 
+export type SpreadGrowthEntry = {
+  order: number;
+  cardName: string;
+  drawnFor: string;
+  nodeType?: CardNodeType;
+  nodeLabel?: string;
+};
+
+export type FirstCardImpression = {
+  cardName: string;
+  impressionText: string;
+  selectedChip?: string;
+  createdAt: string;
+};
+
+export type SymbolSelection = {
+  id: string;
+  cardId: string;
+  symbolId: string;
+  symbolLabel: string;
+  selectedDirection?: string;
+  customMeaning?: string;
+  createdAt: string;
+};
+
+export type RandomnessReflection = {
+  id: string;
+  cardId: string;
+  questionText: string;
+  perceivedConnection: "yes" | "a_little" | "not_yet" | "self_connected" | "resist";
+  helpedShift?: "yes" | "a_little" | "no" | "resist";
+  createdAt: string;
+};
+
 export type ParchmentSummary = {
   type?: "parchment_summary";
   originalQuestion: string;
   currentQuestion: string;
   questionPath: ParchmentQuestionPathItem[];
+  concreteScenes: string[];
+  operatingRules: string[];
+  cardDisruptions: string[];
+  selectedWordAnchors: string[];
+  spreadGrowthStory: SpreadGrowthEntry[];
+  firstRandomCard?: string;
+  firstImpression?: string;
+  randomnessReflectionSummary?: string;
   finalCurrentQuestion: string;
   smallPieces: ParchmentSmallPiece[];
   connection: string;
@@ -135,12 +275,19 @@ export type ChatThread = {
   title: string;
   originalQuestion: string;
   currentQuestion: string;
+  firstCardImpression?: FirstCardImpression;
+  openingSymbolSelection?: SymbolSelection;
+  currentStage: SoraStage;
   questionHistory: QuestionTransform[];
+  operatingRules: OperatingRule[];
   createdAt: string;
   updatedAt: string;
   language: Language;
   spreadCards: SpreadCard[];
   wordAnchors: WordAnchor[];
+  conceptAnchors?: ConceptAnchor[];
+  randomnessReflections: RandomnessReflection[];
+  usedGroundingEntryTypes: UsedGroundingEntryType[];
   askedQuestionIntents: AskedQuestionIntent[];
   cards?: string[];
   messages: ChatMessage[];

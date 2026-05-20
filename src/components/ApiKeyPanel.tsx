@@ -52,7 +52,9 @@ export default function ApiKeyPanel({ settings, onChange }: Props) {
         language: settings.language,
         originalQuestion: "Connection test",
         currentQuestion: "Connection test",
+        currentStage: "scene",
         questionHistory: [],
+        operatingRules: [],
         currentCard: "The Star",
         spreadCards: [
           {

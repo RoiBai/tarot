@@ -7,16 +7,22 @@ type Props = {
 };
 
 export default function QuestionTransformation({ fromQuestion, toQuestion, language }: Props) {
-  const label = language === "zh" ? "问题转向" : "Question shifted";
+  const zh = language === "zh";
 
   return (
-    <details className="question-shift-event">
-      <summary>{label}</summary>
+    <section className="question-shift-event" aria-label={zh ? "问题转向" : "Question shifted"}>
+      <span className="question-shift-label">{zh ? "问题转向" : "Question shifted"}</span>
       <div className="question-shift-compact">
-        <p>“{fromQuestion}”</p>
-        <span aria-hidden="true">↓</span>
-        <p>“{toQuestion}”</p>
+        <p className="question-before">“{fromQuestion}”</p>
+        <span aria-hidden="true">→</span>
+        <p className="question-after">“{toQuestion}”</p>
       </div>
-    </details>
+      <div className="question-particles" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
+      </div>
+    </section>
   );
 }

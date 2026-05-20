@@ -1,11 +1,12 @@
 # Card-Mediated Reflection
 
-A physical-digital tarot chatbox for reflective questioning. Users enter a question, draw physical tarot cards, show them to the camera or enter them manually, and continue a reflective AI conversation. The system does not predict the future; it helps users transform questions and create a warm parchment-style reflection.
+A physical-digital tarot chatbox for reflective questioning. Users first encounter a random Major Arcana image, notice one visual symbol, connect it with a possible direction, and only then bring a personal question to it. The system does not predict the future and is not a tarot meaning encyclopedia; symbol meanings are reflective prompts for user-authored interpretation.
 
 ## Features
 
 - Bilingual English / Chinese interface
-- Camera or manual card input
+- Opening Major Arcana image interaction before the question
+- Camera or manual full-deck card input for later cards
 - Dynamic growing spread instead of a fixed spread
 - Current question transformation during the conversation
 - Word anchors for continuing from meaningful phrases
@@ -13,6 +14,70 @@ A physical-digital tarot chatbox for reflective questioning. Users enter a quest
 - Saved chats in browser localStorage
 - API key settings for local testing or public demos
 - Responsive mystical visual design
+
+## Tarot Card Images
+
+The opening interaction currently uses the 22 Rider-Waite-Smith Major Arcana cards as visual-symbol prompts. Later card thumbnails support the full 78-card RWS deck, so manually entered cards such as `Queen of Cups` / `圣杯皇后` can still show images.
+
+Major Arcana images are stored in:
+
+```text
+public/cards/rws/major/
+```
+
+Minor Arcana images are stored by suit in:
+
+```text
+public/cards/rws/minor/cups/
+public/cards/rws/minor/wands/
+public/cards/rws/minor/swords/
+public/cards/rws/minor/pentacles/
+```
+
+Major filenames are:
+
+```text
+00-fool.jpg
+01-magician.jpg
+02-high-priestess.jpg
+03-empress.jpg
+04-emperor.jpg
+05-hierophant.jpg
+06-lovers.jpg
+07-chariot.jpg
+08-strength.jpg
+09-hermit.jpg
+10-wheel-of-fortune.jpg
+11-justice.jpg
+12-hanged-man.jpg
+13-death.jpg
+14-temperance.jpg
+15-devil.jpg
+16-tower.jpg
+17-star.jpg
+18-moon.jpg
+19-sun.jpg
+20-judgement.jpg
+21-world.jpg
+```
+
+You can try downloading the public-domain Wikimedia Commons source images with:
+
+```bash
+npm run download:cards
+```
+
+The script saves files into `public/cards/rws/major/` and `public/cards/rws/minor/`, and skips existing files unless you run:
+
+```bash
+npm run download:cards -- --overwrite
+```
+
+If downloading is blocked, manually place the files in those folders. The app gracefully shows a placeholder if an image is missing.
+
+Image metadata lives in `src/lib/tarotImageMeta.ts`. Symbol prompt metadata lives in `src/lib/cardSymbols.ts`.
+
+Source note: tarot card images are based on public-domain Rider-Waite-Smith images illustrated by Pamela Colman Smith and first published in 1909. Source images are from Wikimedia Commons. Some later recolored or modified editions may remain copyrighted; this demo uses public-domain source images only.
 
 ## Install
 
@@ -32,7 +97,7 @@ Create `.env.local` for private local testing with `npm run dev`:
 
 ```bash
 VITE_OPENAI_API_KEY=your_key_here
-VITE_OPENAI_MODEL=gpt-4o-mini
+VITE_OPENAI_MODEL=gpt-4o
 VITE_OPENAI_BASE_URL=https://api.shubiaobiao.com/v1
 VITE_BASE_PATH=/
 ```
