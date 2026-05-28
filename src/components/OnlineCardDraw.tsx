@@ -9,10 +9,19 @@ type Props = {
   title?: string;
   subtitle?: string;
   confirmLabel?: string;
+  revealCardName?: boolean;
   onCardSelected: (card: TarotDeckCard) => void;
 };
 
-export default function OnlineCardDraw({ cards, language, title, subtitle, confirmLabel, onCardSelected }: Props) {
+export default function OnlineCardDraw({
+  cards,
+  language,
+  title,
+  subtitle,
+  confirmLabel,
+  revealCardName = true,
+  onCardSelected
+}: Props) {
   const zh = language === "zh";
   const [seed, setSeed] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -99,13 +108,21 @@ export default function OnlineCardDraw({ cards, language, title, subtitle, confi
                 <span className="online-card-back-mark" />
               </div>
               <div className="online-card-flip-front">
-                <img src={withBase(selectedCard.imagePath)} alt={zh ? selectedCard.nameZh : selectedCard.nameEn} />
+                <img src={withBase(selectedCard.imagePath)} alt={revealCardName ? (zh ? selectedCard.nameZh : selectedCard.nameEn) : ""} />
               </div>
             </div>
             <div className="online-draw-reveal-copy">
               <Sparkles size={18} />
-              <h3>{zh ? selectedCard.nameZh : selectedCard.nameEn}</h3>
-              <p>{zh ? "这张牌已经翻开。确认后，它会加入这次牌阵。" : "This card has turned over. Confirm it to add it to the spread."}</p>
+              <h3>{revealCardName ? (zh ? selectedCard.nameZh : selectedCard.nameEn) : zh ? "这张牌翻开了" : "The card is revealed"}</h3>
+              <p>
+                {revealCardName
+                  ? zh
+                    ? "确认后，它会进入这次牌阵。"
+                    : "Confirm it to add it to this spread."
+                  : zh
+                    ? "先不用急着命名它。确认后，先看图像给你的第一感觉。"
+                    : "No need to name it yet. Confirm it, then notice the image first."}
+              </p>
             </div>
             <div className="button-row">
               <button className="primary-action" onClick={() => onCardSelected(selectedCard)}>

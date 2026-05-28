@@ -1,3 +1,5 @@
+import type { TarotDeckCard } from "../lib/tarotDeck";
+
 export type Language = "en" | "zh";
 
 export type ChatRole = "user" | "assistant" | "card" | "system";
@@ -129,6 +131,80 @@ export type UsedGroundingEntryType = {
   type: GroundingEntryType;
   questionText: string;
   cardId?: string;
+  createdAt: string;
+};
+
+export type SpreadId = "one-card-deep-dive" | "two-choice" | "past-present-future" | "celtic-cross";
+
+export type SpreadPosition = {
+  id: string;
+  order: number;
+  titleZh: string;
+  titleEn: string;
+  positionQuestionZh: string;
+  positionQuestionEn: string;
+  agentGoalZh: string;
+  agentGoalEn: string;
+  layout: {
+    x: number;
+    y: number;
+    rotate?: number;
+    overlap?: boolean;
+  };
+};
+
+export type TarotSpread = {
+  id: SpreadId;
+  nameZh: string;
+  nameEn: string;
+  descriptionZh: string;
+  descriptionEn: string;
+  recommendedForZh: string;
+  recommendedForEn: string;
+  type: "simple" | "celtic";
+  positions: SpreadPosition[];
+};
+
+export type PositionReadingStatus = "empty" | "active" | "completed" | "skipped";
+
+export type PositionReading = {
+  spreadId: string;
+  positionId: string;
+  positionOrder: number;
+  positionTitleZh: string;
+  positionTitleEn: string;
+  positionQuestionZh: string;
+  positionQuestionEn: string;
+  agentGoalZh: string;
+  agentGoalEn: string;
+  card?: TarotDeckCard;
+  userObservation?: string;
+  dialogue: ChatMessage[];
+  ultimateQuestionZh?: string;
+  ultimateQuestionEn?: string;
+  coreInsightZh?: string;
+  coreInsightEn?: string;
+  status: PositionReadingStatus;
+  turnCount: number;
+};
+
+export type PositionAgentStructuredResponse = {
+  type: "position_agent_response" | "position_agent_completion";
+  response: string;
+  questionToUser: string | null;
+  shouldComplete: boolean;
+  ultimateQuestion: string | null;
+  coreInsight: string | null;
+};
+
+export type SpreadSummary = {
+  type: "spread_summary";
+  title: string;
+  overview: string;
+  deepPattern: string;
+  questionToCarry: string;
+  gentleSuggestion: string;
+  smallPoem: string;
   createdAt: string;
 };
 
@@ -293,6 +369,13 @@ export type ChatThread = {
   messages: ChatMessage[];
   endedForNow: boolean;
   parchmentSummary?: ParchmentSummary;
+  spreadId?: SpreadId;
+  spreadName?: string;
+  spreadPositions?: PositionReading[];
+  currentPositionIndex?: number;
+  choiceA?: string;
+  choiceB?: string;
+  summary?: SpreadSummary;
 };
 
 export type Settings = {

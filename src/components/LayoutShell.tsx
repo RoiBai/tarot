@@ -24,7 +24,7 @@ export default function LayoutShell({ settings, children }: Props) {
       </div>
       <section className="app-content">{children}</section>
       <footer className="demo-footer">
-        <span>v0.1 GitHub Demo</span>
+        <span>v0.2 Spread Demo</span>
         <span>
           {settings.language === "zh"
             ? "研究 Demo · 非占卜预测 · 仅用于反思体验"

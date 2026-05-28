@@ -17,9 +17,9 @@ export type TarotDeckCard = {
 };
 
 const majorNames = [
-  ["fool", "The Fool", "愚人", "00-fool.jpg", ["开始", "风险", "自由", "门槛", "还没准备好"], ["beginning", "risk", "freedom", "threshold", "not ready yet"]],
+  ["fool", "The Fool", "愚人", "00-fool.jpg", ["开始", "风险", "自由", "门槛", "尚未准备好"], ["beginning", "risk", "freedom", "threshold", "not ready yet"]],
   ["magician", "The Magician", "魔术师", "01-magician.jpg", ["意志", "工具", "注意力", "让事情成形", "能力"], ["will", "tools", "attention", "making real", "skill"]],
-  ["high-priestess", "The High Priestess", "女祭司", "02-high-priestess.jpg", ["安静", "直觉", "隐藏感受", "等待", "还没说出"], ["silence", "intuition", "hidden feeling", "waiting", "not yet spoken"]],
+  ["high-priestess", "The High Priestess", "女祭司", "02-high-priestess.jpg", ["安静", "直觉", "隐藏感受", "等待", "尚未说出"], ["silence", "intuition", "hidden feeling", "waiting", "not yet spoken"]],
   ["empress", "The Empress", "皇后", "03-empress.jpg", ["照顾", "身体", "生长", "接收", "丰盛"], ["care", "body", "growth", "receiving", "abundance"]],
   ["emperor", "The Emperor", "皇帝", "04-emperor.jpg", ["结构", "控制", "边界", "权威", "秩序"], ["structure", "control", "boundary", "authority", "order"]],
   ["hierophant", "The Hierophant", "教皇", "05-hierophant.jpg", ["规则", "传统", "认可", "学习", "归属"], ["rule", "tradition", "approval", "learning", "belonging"]],
@@ -50,15 +50,39 @@ export const majorArcanaDeck: TarotDeckCard[] = majorNames.map(([id, nameEn, nam
   imagePath: `/cards/rws/major/${file}`,
   keywordsZh: [...keywordsZh],
   keywordsEn: [...keywordsEn],
-  shortMeaningZh: `「${nameZh}」常让人想到${keywordsZh.slice(0, 4).join("、")}。`,
+  shortMeaningZh: `《${nameZh}》常让人想到${keywordsZh.slice(0, 4).join("、")}。`,
   shortMeaningEn: `${nameEn} often brings up ${keywordsEn.slice(0, 4).join(", ")}.`
 }));
 
-const suits: Record<TarotSuit, { en: string; zh: string; folder: string; fileSuit: string; keywordsZh: string[]; keywordsEn: string[] }> = {
-  swords: { en: "Swords", zh: "宝剑", folder: "swords", fileSuit: "swords", keywordsZh: ["想法", "判断", "压力", "真相", "冲突"], keywordsEn: ["thought", "judgment", "pressure", "truth", "conflict"] },
-  wands: { en: "Wands", zh: "权杖", folder: "wands", fileSuit: "wands", keywordsZh: ["欲望", "能量", "行动", "生长", "方向"], keywordsEn: ["desire", "energy", "action", "growth", "direction"] },
-  cups: { en: "Cups", zh: "圣杯", folder: "cups", fileSuit: "cups", keywordsZh: ["感受", "照顾", "需要", "关系", "接收"], keywordsEn: ["feeling", "care", "need", "relationship", "receiving"] },
-  pentacles: { en: "Pentacles", zh: "星币", folder: "pentacles", fileSuit: "pentacles", keywordsZh: ["身体", "资源", "练习", "安全感", "日常"], keywordsEn: ["body", "resources", "practice", "security", "daily life"] }
+const suits: Record<TarotSuit, { en: string; zh: string; folder: string; keywordsZh: string[]; keywordsEn: string[] }> = {
+  swords: {
+    en: "Swords",
+    zh: "宝剑",
+    folder: "swords",
+    keywordsZh: ["想法", "判断", "压力", "真相", "冲突"],
+    keywordsEn: ["thought", "judgment", "pressure", "truth", "conflict"]
+  },
+  wands: {
+    en: "Wands",
+    zh: "权杖",
+    folder: "wands",
+    keywordsZh: ["欲望", "能量", "行动", "生长", "方向"],
+    keywordsEn: ["desire", "energy", "action", "growth", "direction"]
+  },
+  cups: {
+    en: "Cups",
+    zh: "圣杯",
+    folder: "cups",
+    keywordsZh: ["感受", "照顾", "需要", "关系", "接收"],
+    keywordsEn: ["feeling", "care", "need", "relationship", "receiving"]
+  },
+  pentacles: {
+    en: "Pentacles",
+    zh: "星币",
+    folder: "pentacles",
+    keywordsZh: ["身体", "资源", "练习", "安全感", "日常"],
+    keywordsEn: ["body", "resources", "practice", "security", "daily life"]
+  }
 };
 
 export const ranks: Array<{ rank: TarotRank; index: number; en: string; zh: string; fileRank: string; keywordsZh: string[]; keywordsEn: string[] }> = [
@@ -116,7 +140,7 @@ export const minorArcanaDeck: TarotDeckCard[] = (Object.keys(suits) as TarotSuit
     const merged = { ...base, ...(overrides[id] || {}) };
     return {
       ...merged,
-      shortMeaningZh: merged.shortMeaningZh || `「${nameZh}」常让人想到${merged.keywordsZh.slice(0, 4).join("、")}。`,
+      shortMeaningZh: merged.shortMeaningZh || `《${nameZh}》常让人想到${merged.keywordsZh.slice(0, 4).join("、")}。`,
       shortMeaningEn: merged.shortMeaningEn || `${nameEn} often brings up ${merged.keywordsEn.slice(0, 4).join(", ")}.`
     };
   })

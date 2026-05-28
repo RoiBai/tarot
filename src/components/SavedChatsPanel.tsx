@@ -21,13 +21,38 @@ function download(filename: string, content: string, type: string) {
   URL.revokeObjectURL(url);
 }
 
-function exportText(thread: ChatThread): string {
+function exportText(thread: ChatThread, language: Language): string {
+  const zh = language === "zh";
+  if (thread.spreadPositions?.length) {
+    const positions = thread.spreadPositions.map((reading) => {
+      const title = zh ? reading.positionTitleZh : reading.positionTitleEn;
+      const card = reading.card ? (zh ? reading.card.nameZh : reading.card.nameEn) : zh ? "未选牌" : "No card";
+      const ultimate = zh
+        ? reading.ultimateQuestionZh || reading.ultimateQuestionEn || ""
+        : reading.ultimateQuestionEn || reading.ultimateQuestionZh || "";
+      return [`${reading.positionOrder}. ${title}`, `Card: ${card}`, ultimate ? `Ultimate question: ${ultimate}` : ""]
+        .filter(Boolean)
+        .join("\n");
+    });
+    return [
+      thread.title,
+      zh ? `总问题：${thread.originalQuestion}` : `Main question: ${thread.originalQuestion}`,
+      thread.spreadName ? `${zh ? "牌阵" : "Spread"}: ${thread.spreadName}` : "",
+      thread.choiceA || thread.choiceB ? `A: ${thread.choiceA || ""}\nB: ${thread.choiceB || ""}` : "",
+      "",
+      ...positions,
+      "",
+      thread.summary ? [thread.summary.title, thread.summary.overview, thread.summary.deepPattern, thread.summary.questionToCarry].join("\n\n") : ""
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+  }
+
   return [
     thread.title,
     `Original question: ${thread.originalQuestion}`,
     `Current question: ${thread.currentQuestion}`,
     `Cards: ${thread.spreadCards.map((card) => `${card.cardName} (${card.role})`).join(", ") || "None"}`,
-    `Word anchors: ${thread.wordAnchors.filter((anchor) => anchor.selected).map((anchor) => anchor.text).join(", ") || "None"}`,
     "",
     ...thread.messages.map((message) => `[${message.role}] ${message.content}`)
   ].join("\n");
@@ -35,6 +60,7 @@ function exportText(thread: ChatThread): string {
 
 export default function SavedChatsPanel({ language, threads, onClose, onReopen, onDelete }: Props) {
   const text = t(language);
+  const zh = language === "zh";
   return (
     <div className="modal-backdrop">
       <section className="modal archive-panel">
@@ -46,38 +72,41 @@ export default function SavedChatsPanel({ language, threads, onClose, onReopen, 
         </div>
         {!threads.length && <p className="subtle">{String(text.emptyArchive)}</p>}
         <div className="archive-list">
-          {threads.map((thread) => (
-            <article className="archive-item" key={thread.id}>
-              <h3>{thread.title}</h3>
-              <p>{thread.originalQuestion}</p>
-              <p className="subtle">
-                {formatDate(thread.updatedAt, language === "zh" ? "zh-CN" : "en")} · {String(text.cards)}:{" "}
-                {thread.spreadCards.map((card) => `${card.cardName} / ${card.role}`).join(", ") || "-"}
-              </p>
-              <div className="button-row">
-                <button className="primary-action" onClick={() => onReopen(thread)}>
-                  {String(text.reopen)}
-                </button>
-                <button
-                  className="ghost-action"
-                  onClick={() => download(`${thread.id}.json`, JSON.stringify(thread, null, 2), "application/json")}
-                >
-                  <Download size={16} />
-                  {String(text.exportJson)}
-                </button>
-                <button
-                  className="ghost-action"
-                  onClick={() => download(`${thread.id}.txt`, exportText(thread), "text/plain")}
-                >
-                  <FileText size={16} />
-                  {String(text.exportText)}
-                </button>
-                <button className="icon-action danger" onClick={() => onDelete(thread.id)} aria-label={String(text.delete)}>
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </article>
-          ))}
+          {threads.map((thread) => {
+            const spreadCards = thread.spreadPositions?.filter((reading) => reading.card).length || thread.spreadCards.length;
+            return (
+              <article className="archive-item" key={thread.id}>
+                <h3>{thread.title}</h3>
+                <p>{thread.originalQuestion}</p>
+                <p className="subtle">
+                  {formatDate(thread.updatedAt, zh ? "zh-CN" : "en")} · {thread.spreadName || (zh ? "旧版对话" : "Legacy chat")} ·{" "}
+                  {String(text.cards)}: {spreadCards}
+                </p>
+                <div className="button-row">
+                  <button className="primary-action" onClick={() => onReopen(thread)}>
+                    {String(text.reopen)}
+                  </button>
+                  <button
+                    className="ghost-action"
+                    onClick={() => download(`${thread.id}.json`, JSON.stringify(thread, null, 2), "application/json")}
+                  >
+                    <Download size={16} />
+                    {String(text.exportJson)}
+                  </button>
+                  <button
+                    className="ghost-action"
+                    onClick={() => download(`${thread.id}.txt`, exportText(thread, language), "text/plain")}
+                  >
+                    <FileText size={16} />
+                    {String(text.exportText)}
+                  </button>
+                  <button className="icon-action danger" onClick={() => onDelete(thread.id)} aria-label={String(text.delete)}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
     </div>

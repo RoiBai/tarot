@@ -48,12 +48,12 @@ export default function CardSelector({ language, allowedArcana = "both", onCardS
           <div className="segmented full">
             {canChooseMajor && (
               <button className={arcana === "major" ? "active" : ""} onClick={() => setArcana("major")}>
-                {zh ? "大阿尔卡纳" : "Major Arcana"}
+                {zh ? "大阿尔卡那" : "Major Arcana"}
               </button>
             )}
             {canChooseMinor && (
               <button className={arcana === "minor" ? "active" : ""} onClick={() => setArcana("minor")}>
-                {zh ? "小阿尔卡纳" : "Minor Arcana"}
+                {zh ? "小阿尔卡那" : "Minor Arcana"}
               </button>
             )}
           </div>
@@ -62,7 +62,7 @@ export default function CardSelector({ language, allowedArcana = "both", onCardS
 
       {arcana === "major" && canChooseMajor && (
         <label>
-          {zh ? "选择大阿尔卡纳" : "Choose Major Arcana"}
+          {zh ? "选择大阿尔卡那" : "Choose Major Arcana"}
           <select value={majorId} onChange={(event) => setMajorId(event.target.value)}>
             <option value="">-</option>
             {majorArcanaDeck.map((card) => (
