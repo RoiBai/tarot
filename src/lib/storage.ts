@@ -1,4 +1,4 @@
-import type { ChatThread, Settings, SpreadCard, WordAnchor } from "../types";
+import type { ChatThread, Language, Settings, SpreadCard, WordAnchor } from "../types";
 
 const THREADS_KEY = "cmr.chatThreads";
 const SETTINGS_KEY = "cmr.settings";
@@ -109,6 +109,61 @@ export function getFreeTrialProxyUrl(): string {
   if (configured) return configured;
   if (typeof window !== "undefined" && window.location.hostname.endsWith("github.io")) return "";
   return import.meta.env.PROD ? "/api/free-trial-chat" : "";
+}
+
+export async function checkFreeTrialAvailability(language: Language): Promise<string> {
+  if (getEffectiveApiKey().trim()) return "";
+
+  const proxyUrl = getFreeTrialProxyUrl();
+  if (!proxyUrl) {
+    return language === "zh"
+      ? "这次免费体验入口当前不可用。请在设置里添加 key/token 后继续。"
+      : "The free trial is not available here. Add a key/token in Settings to continue.";
+  }
+
+  try {
+    const response = await fetch(proxyUrl, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        preflight: true,
+        threadId: `preflight-${Date.now()}-${Math.random().toString(36).slice(2)}`
+      })
+    });
+
+    if (response.ok) return "";
+
+    const serverMessage = await readFreeTrialCheckMessage(response);
+    return serverMessage || defaultFreeTrialUnavailableMessage(language);
+  } catch {
+    return language === "zh"
+      ? "暂时无法确认免费体验是否可用。请稍后再试，或在设置里添加 key/token 后继续。"
+      : "I could not confirm whether the free trial is available. Try again shortly or add a key/token in Settings.";
+  }
+}
+
+async function readFreeTrialCheckMessage(response: Response): Promise<string> {
+  try {
+    const data = (await response.clone().json()) as { error?: unknown };
+    const error = data.error;
+    if (typeof error === "string") return error;
+    if (error && typeof error === "object" && "message" in error) {
+      const message = (error as { message?: unknown }).message;
+      return typeof message === "string" ? message : "";
+    }
+  } catch {
+    // Keep the generic message if the proxy returned a non-JSON error.
+  }
+  return "";
+}
+
+function defaultFreeTrialUnavailableMessage(language: Language): string {
+  return language === "zh"
+    ? "这台设备已经用过免费体验了。你可以联系我获取 key/token 后继续。"
+    : "This device has already used the free trial. Contact me for a key/token to continue.";
 }
 
 export function normalizeThread(thread: ChatThread & { cards?: string[] }): ChatThread {

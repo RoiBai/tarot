@@ -7,16 +7,18 @@ type Props = {
   language: Language;
   question: string;
   recommendedSpread: TarotSpread;
+  simpleSpreads: TarotSpread[];
   celticSpread: TarotSpread;
   onBack: () => void;
   onChoose: (spread: TarotSpread, choices?: { choiceA?: string; choiceB?: string }) => void;
 };
 
-export default function SpreadSelectionPage({ language, question, recommendedSpread, celticSpread, onBack, onChoose }: Props) {
+export default function SpreadSelectionPage({ language, question, recommendedSpread, simpleSpreads, celticSpread, onBack, onChoose }: Props) {
   const zh = language === "zh";
   const [choiceSpread, setChoiceSpread] = useState<TarotSpread | null>(null);
   const [choiceA, setChoiceA] = useState("");
   const [choiceB, setChoiceB] = useState("");
+  const otherSimpleSpreads = simpleSpreads.filter((spread) => spread.id !== recommendedSpread.id);
 
   function choose(spread: TarotSpread) {
     if (spread.id === "two-choice") {
@@ -45,6 +47,11 @@ export default function SpreadSelectionPage({ language, question, recommendedSpr
             ? "如果你想更深入，也可以选择凯尔特十字。"
             : "If you want a deeper reading, you can choose the Celtic Cross."}
         </p>
+        <p>
+          {zh
+            ? "其他简易牌阵也会保留在下面；如果推荐没有贴中你的问题，可以直接切换。"
+            : "The other simple spreads stay available below, so you can switch if the recommendation does not fit."}
+        </p>
       </header>
 
       <div className="spread-choice-grid">
@@ -55,6 +62,16 @@ export default function SpreadSelectionPage({ language, question, recommendedSpr
           spread={recommendedSpread}
           onChoose={() => choose(recommendedSpread)}
         />
+        {otherSimpleSpreads.map((spread) => (
+          <SpreadChoiceCard
+            key={spread.id}
+            language={language}
+            label={zh ? "其他简易牌阵" : "Other simple spread"}
+            icon={<Compass size={19} />}
+            spread={spread}
+            onChoose={() => choose(spread)}
+          />
+        ))}
         <SpreadChoiceCard
           language={language}
           label={zh ? "更深入：凯尔特十字" : "Deeper option: Celtic Cross"}

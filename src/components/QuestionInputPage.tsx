@@ -4,11 +4,13 @@ import type { Language } from "../types";
 
 type Props = {
   language: Language;
+  notice?: string;
+  submitting?: boolean;
   onBack: () => void;
-  onSubmit: (question: string) => void;
+  onSubmit: (question: string) => void | Promise<void>;
 };
 
-export default function QuestionInputPage({ language, onBack, onSubmit }: Props) {
+export default function QuestionInputPage({ language, notice = "", submitting = false, onBack, onSubmit }: Props) {
   const zh = language === "zh";
   const [question, setQuestion] = useState("");
   const trimmed = question.trim();
@@ -31,9 +33,10 @@ export default function QuestionInputPage({ language, onBack, onSubmit }: Props)
               : "e.g., How should I understand a choice that keeps making me hesitate?"
           }
         />
-        <button className="primary-action" disabled={!trimmed} onClick={() => onSubmit(trimmed)}>
+        {notice && <p className="form-error">{notice}</p>}
+        <button className="primary-action" disabled={!trimmed || submitting} onClick={() => void onSubmit(trimmed)}>
           <Sparkles size={18} />
-          {zh ? "推荐牌阵" : "Recommend spreads"}
+          {submitting ? (zh ? "正在确认免费体验…" : "Checking access...") : zh ? "推荐牌阵" : "Recommend spreads"}
         </button>
       </div>
     </section>

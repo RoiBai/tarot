@@ -327,22 +327,30 @@ export function createPositionReadings(spread: TarotSpread) {
 export function recommendSimpleSpread(question: string): SpreadId {
   const value = question.trim().toLowerCase();
   const binaryMarkers = [
+    /\b(or|versus|vs\.?|either|whether|choice|choose|decision|decide)\b/i,
     /\ba\s+or\s+b\b/i,
     /\b(a|option a)\s*(\/|vs\.?|or)\s*(b|option b)\b/i,
-    /\bshould\s+i\b/i,
+    /\b(should|could|do)\s+i\b/i,
     /\b(stay|leave)\s+or\s+(stay|leave)\b/i,
     /\b(left|right)\s*\/\s*(left|right)\b/i,
-    /选择|还是|要不要|继续还是放弃|二选一|选哪|该不该|是否/
+    /选择|抉择|决定|纠结|比较|还是|或者|要不要|继续还是放弃|留下还是离开|二选一|选哪|该不该|是否|要不要分手|要不要辞职|要不要继续/
   ];
-  if (binaryMarkers.some((pattern) => pattern.test(value))) return "two-choice";
 
   const timeMarkers = [
-    /\b(recently|now|next|future|past|stage|change|changing|develop|development|where.*came from|where.*going)\b/i,
-    /过去|现在|未来|最近|下一步|阶段|变化|发展|从哪里来|会怎样|后来|以前|接下来/
+    /\b(recently|currently|now|next|future|past|before|after|stage|phase|change|changing|shift|pattern|develop|development|timeline|where.*came from|where.*going|what.*next)\b/i,
+    /过去|现在|未来|最近|近期|下一步|阶段|变化|转变|发展|趋势|走向|从哪里来|会怎样|后来|以前|接下来|之后|之前|目前|当前|如果继续/
   ];
-  if (timeMarkers.some((pattern) => pattern.test(value))) return "past-present-future";
+  const binaryScore = countMatches(binaryMarkers, value);
+  const timeScore = countMatches(timeMarkers, value);
+
+  if (binaryScore > 0 && binaryScore >= timeScore) return "two-choice";
+  if (timeScore > 0) return "past-present-future";
 
   return "one-card-deep-dive";
+}
+
+function countMatches(patterns: RegExp[], value: string): number {
+  return patterns.reduce((score, pattern) => score + (pattern.test(value) ? 1 : 0), 0);
 }
 
 export function positionTitle(position: SpreadPosition, language: "en" | "zh") {

@@ -60,6 +60,14 @@ export default async function handler(request, response) {
     return;
   }
 
+  if (payload.preflight === true) {
+    response.status(200).json({
+      ok: true,
+      callsRemaining: Math.max(0, maxCalls - usedCalls)
+    });
+    return;
+  }
+
   const upstreamBody = buildUpstreamBody(payload);
   if (!upstreamBody) {
     response.status(400).json({ error: "Missing chat messages." });

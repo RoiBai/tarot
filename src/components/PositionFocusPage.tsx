@@ -188,15 +188,26 @@ export default function PositionFocusPage({
                 {drawMode === "physical" ? (
                   <CardSelector language={language} onCardSelected={selectCard} />
                 ) : (
-                  <OnlineCardDraw
-                    cards={tarotDeck}
-                    language={language}
-                    revealCardName={false}
-                    title={zh ? "线上抽一张牌" : "Draw one card online"}
-                    subtitle={zh ? "如果你手边没有实体牌，可以在这里凭第一感觉选一张牌背。" : "If you do not have your physical deck nearby, choose a face-down card here by feel."}
-                    confirmLabel={zh ? "就用这张" : "Use this card"}
-                    onCardSelected={selectCard}
-                  />
+                  <div className="online-draw-page" role="dialog" aria-modal="true">
+                    <div className="online-draw-page-shell">
+                      <div className="button-row online-draw-page-top">
+                        <button className="ghost-action" onClick={() => setDrawMode("physical")}>
+                          <ArrowLeft size={16} />
+                          {zh ? "回到实体牌输入" : "Back to physical input"}
+                        </button>
+                      </div>
+                      <OnlineCardDraw
+                        cards={tarotDeck}
+                        language={language}
+                        revealCardName={false}
+                        fullPage
+                        title={zh ? "线上抽一张牌" : "Draw one card online"}
+                        subtitle={zh ? "如果你手边没有实体牌，可以在这里凭第一感觉选一张牌背。" : "If you do not have your physical deck nearby, choose a face-down card here by feel."}
+                        confirmLabel={zh ? "就用这张" : "Use this card"}
+                        onCardSelected={selectCard}
+                      />
+                    </div>
+                  </div>
                 )}
               </>
             ) : (

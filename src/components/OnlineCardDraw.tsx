@@ -10,6 +10,7 @@ type Props = {
   subtitle?: string;
   confirmLabel?: string;
   revealCardName?: boolean;
+  fullPage?: boolean;
   onCardSelected: (card: TarotDeckCard) => void;
 };
 
@@ -20,6 +21,7 @@ export default function OnlineCardDraw({
   subtitle,
   confirmLabel,
   revealCardName = true,
+  fullPage = false,
   onCardSelected
 }: Props) {
   const zh = language === "zh";
@@ -28,11 +30,11 @@ export default function OnlineCardDraw({
   const [isShuffling, setIsShuffling] = useState(false);
   const shuffledCards = useMemo(() => shuffleCards(cards), [cards, seed]);
   const selectedCard = selectedIndex === null ? null : shuffledCards[selectedIndex];
-  const cardWidth = cards.length > 40 ? 58 : 76;
-  const fanSpread = cards.length > 40 ? 92 : 80;
-  const maxRotation = cards.length > 40 ? 30 : 24;
-  const curveDepth = cards.length > 40 ? 96 : 76;
-  const fanHeight = cards.length > 40 ? 238 : 210;
+  const cardWidth = fullPage ? (cards.length > 40 ? 76 : 92) : cards.length > 40 ? 58 : 76;
+  const fanSpread = fullPage ? 104 : cards.length > 40 ? 92 : 80;
+  const maxRotation = fullPage ? 34 : cards.length > 40 ? 30 : 24;
+  const curveDepth = fullPage ? 128 : cards.length > 40 ? 96 : 76;
+  const fanHeight = fullPage ? 340 : cards.length > 40 ? 238 : 210;
   const mid = Math.max(1, (shuffledCards.length - 1) / 2);
 
   function resetDraw() {
@@ -43,7 +45,7 @@ export default function OnlineCardDraw({
   }
 
   return (
-    <section className={`online-card-draw ${selectedCard ? "has-reveal" : ""}`}>
+    <section className={`online-card-draw ${fullPage ? "online-card-draw-full" : ""} ${selectedCard ? "has-reveal" : ""}`}>
       <div className="online-draw-copy">
         <h3>{title || (zh ? "线上抽一张" : "Draw online")}</h3>
         <p>

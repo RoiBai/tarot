@@ -11,8 +11,8 @@ import SpreadBoardPage from "./components/SpreadBoardPage";
 import SpreadSelectionPage from "./components/SpreadSelectionPage";
 import SpreadSummaryPage from "./components/SpreadSummaryPage";
 import { t } from "./lib/i18n";
-import { celticCrossSpread, createPositionReadings, getSpread, recommendSimpleSpread } from "./lib/spreads";
-import { deleteThread, loadSettings, loadThreads, saveSettings, upsertThread } from "./lib/storage";
+import { celticCrossSpread, createPositionReadings, getSpread, recommendSimpleSpread, simpleSpreads } from "./lib/spreads";
+import { checkFreeTrialAvailability, deleteThread, loadSettings, loadThreads, saveSettings, upsertThread } from "./lib/storage";
 import { createId, nowIso, titleFromQuestion } from "./lib/utils";
 import type { ChatThread, PositionReading, Settings, SpreadId, TarotSpread } from "./types";
 
@@ -27,6 +27,8 @@ export default function App() {
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [draftQuestion, setDraftQuestion] = useState("");
   const [recommendedSpreadId, setRecommendedSpreadId] = useState<SpreadId>("one-card-deep-dive");
+  const [questionNotice, setQuestionNotice] = useState("");
+  const [questionSubmitting, setQuestionSubmitting] = useState(false);
   const [focusPositionId, setFocusPositionId] = useState("");
   const text = useMemo(() => t(settings.language), [settings.language]);
 
@@ -43,7 +45,15 @@ export default function App() {
     setThreads(upsertThread(stamped));
   }
 
-  function beginQuestion(question: string) {
+  async function beginQuestion(question: string) {
+    setQuestionNotice("");
+    setQuestionSubmitting(true);
+    const unavailableMessage = await checkFreeTrialAvailability(settings.language);
+    setQuestionSubmitting(false);
+    if (unavailableMessage) {
+      setQuestionNotice(unavailableMessage);
+      return;
+    }
     setDraftQuestion(question);
     setRecommendedSpreadId(recommendSimpleSpread(question));
     setView("spreadSelection");
@@ -162,7 +172,12 @@ export default function App() {
       {view === "question" && (
         <QuestionInputPage
           language={settings.language}
-          onBack={() => setView("landing")}
+          notice={questionNotice}
+          submitting={questionSubmitting}
+          onBack={() => {
+            setQuestionNotice("");
+            setView("landing");
+          }}
           onSubmit={beginQuestion}
         />
       )}
@@ -172,6 +187,7 @@ export default function App() {
           language={settings.language}
           question={draftQuestion}
           recommendedSpread={getSpread(recommendedSpreadId)}
+          simpleSpreads={simpleSpreads}
           celticSpread={celticCrossSpread}
           onBack={() => setView("question")}
           onChoose={(spread, choices) => createSpreadThread(draftQuestion, spread, choices)}
