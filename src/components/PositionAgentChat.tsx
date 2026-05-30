@@ -39,7 +39,11 @@ export default function PositionAgentChat({
 
   const companionName = zh ? "读牌伙伴" : "Reading companion";
   const initialKey = `${reading.positionId}:${reading.card?.id || ""}:${reading.userObservation || ""}`;
-  const cardKeywords = useMemo(() => (reading.card ? getDisplayKeywords(reading.card, language) : []), [language, reading.card]);
+  const cardKeywords = useMemo(() => {
+    if (!reading.card) return [];
+    const cardName = language === "zh" ? reading.card.nameZh : reading.card.nameEn;
+    return [cardName, reading.card.nameEn, ...getDisplayKeywords(reading.card, language)];
+  }, [language, reading.card]);
 
   useEffect(() => {
     if (!reading.userObservation || !reading.card || reading.dialogue.length || requestKeyRef.current === initialKey) return;
@@ -237,16 +241,27 @@ function selectHighlightKeywords(content: string, keywords: string[], language: 
   const genericEn = new Set(["choice", "feeling", "question", "direction", "state", "possible", "opportunity", "pressure", "future", "present", "past", "need"]);
   const generic = language === "zh" ? genericZh : genericEn;
   const normalizedContent = content.toLowerCase();
-  return [...new Set(keywords)]
+  const quoted = language === "zh" ? extractQuotedChineseTerms(content) : [];
+  return [...new Set([...keywords, ...quoted])]
     .filter((keyword) => {
       const value = keyword.trim();
       if (!value || generic.has(value.toLowerCase())) return false;
-      if (language === "zh" && value.length < 3) return false;
+      if (language === "zh" && value.length < 3 && !content.includes(`《${value}》`)) return false;
       if (language === "en" && value.length < 5) return false;
       return normalizedContent.includes(value.toLowerCase());
     })
     .sort((a, b) => b.length - a.length)
     .slice(0, 4);
+}
+
+function extractQuotedChineseTerms(content: string): string[] {
+  const terms: string[] = [];
+  for (const match of content.matchAll(/《([^》]{2,12})》/g)) terms.push(match[1]);
+  for (const match of content.matchAll(/[“"]([^”"]{3,12})[”"]/g)) terms.push(match[1]);
+  for (const match of content.matchAll(/[\u4e00-\u9fff]{2,8}(?:感|观|边界|价值|成本|策略|规划|耐心|视野|目标|权衡|犹豫|支持)/g)) {
+    terms.push(match[0]);
+  }
+  return terms;
 }
 
 function highlightKeywords(text: string, keywords: string[]): ReactNode[] {
