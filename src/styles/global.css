@@ -3580,6 +3580,37 @@ label {
   font-size: 0.78rem;
 }
 
+.position-message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.message-correction-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(224, 201, 145, 0.22);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(255, 248, 226, 0.045);
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1;
+}
+
+.message-correction-button:not(:disabled):hover {
+  border-color: rgba(214, 181, 109, 0.45);
+  color: var(--gold);
+  background: rgba(214, 181, 109, 0.1);
+}
+
+.message-correction-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .position-message p,
 .position-note-block p {
   margin: 0;

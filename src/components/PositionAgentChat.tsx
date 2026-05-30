@@ -1,4 +1,4 @@
-import { Send, Sparkles } from "lucide-react";
+import { RefreshCw, Send, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getEffectiveApiKey, getFreeTrialProxyUrl } from "../lib/storage";
 import { generatePositionAgentResponse } from "../lib/spreadAgentClient";
@@ -128,6 +128,25 @@ export default function PositionAgentChat({
     void requestCompanion(nextReading.turnCount >= 4, nextReading);
   }
 
+  function challengeInterpretation() {
+    if (loading) return;
+    const content = zh
+      ? "我觉得刚才的解读有偏差。请先用一两句话重新复述你理解的我的意思，不要急着下判断；然后基于我的原问题、我之前的输入、这张牌和当前牌位，换一个更贴近我原话的角度重新分析。请不要直接替我做决定。"
+      : "I think the previous interpretation missed something. Please first restate what you understand I mean in one or two sentences without judging too quickly; then, using my original question, my prior inputs, this card, and the current position, re-analyze from an angle closer to my own words. Please do not decide for me.";
+    const userMessage: ChatMessage = {
+      id: createId("msg"),
+      role: "user",
+      content,
+      timestamp: nowIso()
+    };
+    const nextReading = {
+      ...reading,
+      dialogue: [...reading.dialogue, userMessage]
+    };
+    onReadingChange(nextReading);
+    void requestCompanion(false, nextReading);
+  }
+
   function completeNow() {
     if (loading) return;
     void requestCompanion(true, reading);
@@ -138,7 +157,15 @@ export default function PositionAgentChat({
       <div className="position-dialogue-stream" ref={streamRef}>
         {reading.dialogue.map((message) => (
           <article key={message.id} className={`position-message position-message-${message.role}`}>
-            <span>{message.role === "user" ? (zh ? "你" : "You") : companionName}</span>
+            <div className="position-message-meta">
+              <span>{message.role === "user" ? (zh ? "你" : "You") : companionName}</span>
+              {message.role === "assistant" && (
+                <button className="message-correction-button" disabled={loading} onClick={challengeInterpretation}>
+                  <RefreshCw size={13} />
+                  {zh ? "解读有偏差" : "This misses me"}
+                </button>
+              )}
+            </div>
             <p>{message.content}</p>
           </article>
         ))}
