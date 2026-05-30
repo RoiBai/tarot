@@ -272,21 +272,25 @@ function splitReadableParagraphs(content: string): string[] {
   const existing = content.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean);
   const result: string[] = [];
   for (const paragraph of existing) {
-    if (paragraph.length <= 120) {
+    if (paragraph.length <= 170) {
       result.push(paragraph);
       continue;
     }
     const sentences = paragraph.match(/[^。！？!?]+[。！？!?]?/g)?.map((sentence) => sentence.trim()).filter(Boolean) || [paragraph];
-    let bucket = "";
-    for (const sentence of sentences) {
-      if (bucket && `${bucket}${sentence}`.length > 110) {
-        result.push(bucket);
-        bucket = sentence;
+    let index = 0;
+    while (index < sentences.length) {
+      const first = sentences[index] || "";
+      const second = sentences[index + 1] || "";
+      const third = sentences[index + 2] || "";
+      if (first.length < 70 && second && `${first}${second}`.length <= 180) {
+        const withThird = third && `${first}${second}${third}`.length <= 190 ? `${first}${second}${third}` : "";
+        result.push(withThird || `${first}${second}`);
+        index += withThird ? 3 : 2;
       } else {
-        bucket += sentence;
+        result.push(first);
+        index += 1;
       }
     }
-    if (bucket) result.push(bucket);
   }
   return result;
 }

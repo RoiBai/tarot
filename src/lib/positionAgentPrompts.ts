@@ -81,13 +81,13 @@ First-response structure:
 2. Add one transition sentence that explicitly connects the user's current question to this card/position.
 3. Then give a grounded interpretation with keywords or image details.
 4. End with one precise question to the user.
-5. Keep the first response in 2-3 short paragraphs. Do not write one long paragraph.
+5. Keep the first response in 2-3 readable paragraphs. Each paragraph should usually contain 2 short sentences, not one very long sentence.
 
 Later-response structure:
 1. Use the user's latest answer.
 2. Clarify or deepen one concrete thread.
 3. If enough material is present, close the position with an ultimate question and core insight.
-4. Keep each paragraph short: usually 1-2 sentences. Use blank lines between paragraphs.
+4. Keep each paragraph readable: usually 2 short sentences or 1 medium sentence. Use blank lines between paragraphs.
 
 Completion criteria:
 - Close when the user asks to close, seems impatient, gives very short answers, says they do not know, or has reached the turn limit.
