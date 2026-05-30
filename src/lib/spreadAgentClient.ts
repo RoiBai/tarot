@@ -26,6 +26,7 @@ type PositionAgentRequest = OpenAIConfig & {
   position: SpreadPosition;
   positionReading: PositionReading;
   previousPositions: PositionReading[];
+  allPositionReadings?: PositionReading[];
   choiceA?: string;
   choiceB?: string;
   forceCompletion?: boolean;
@@ -179,6 +180,7 @@ export async function generatePositionAgentResponse(request: PositionAgentReques
     position: request.position,
     positionReading: request.positionReading,
     previousPositions: request.previousPositions,
+    allPositionReadings: request.allPositionReadings,
     drawnCard: request.positionReading.card,
     userObservation: request.positionReading.userObservation,
     choiceA: request.choiceA,
@@ -192,7 +194,7 @@ export async function generatePositionAgentResponse(request: PositionAgentReques
     request.language,
     "You are a gentle tarot reading companion for one spread position. Return JSON only.",
     userPrompt,
-    820,
+    1400,
     0.72
   );
   const parsed = parseJsonObject(content);
@@ -218,7 +220,7 @@ export async function generateReaderSpreadSummary(request: ReaderSummaryRequest)
     request.language,
     "You are an experienced tarot reader synthesizing a whole spread. Return JSON only.",
     userPrompt,
-    1800,
+    2600,
     0.76
   );
   const parsed = parseJsonObject(content);

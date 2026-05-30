@@ -69,6 +69,7 @@ export default function PositionAgentChat({
         position,
         positionReading: baseReading,
         previousPositions,
+        allPositionReadings: thread.spreadPositions || [],
         choiceA: thread.choiceA,
         choiceB: thread.choiceB,
         forceCompletion

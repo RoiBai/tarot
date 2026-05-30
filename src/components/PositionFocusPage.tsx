@@ -1,5 +1,6 @@
 import { ArrowLeft, Home, RotateCcw, SkipForward } from "lucide-react";
 import { useMemo, useState } from "react";
+import { getDisplayKeywords } from "../lib/tarotCardKnowledge";
 import { tarotDeck, withBase } from "../lib/tarotDeck";
 import type { ChatThread, Language, PositionReading, Settings, TarotSpread } from "../types";
 import CardSelector from "./CardSelector";
@@ -66,6 +67,7 @@ export default function PositionFocusPage({
   const title = zh ? currentReading.positionTitleZh : currentReading.positionTitleEn;
   const positionQuestion = zh ? currentReading.positionQuestionZh : currentReading.positionQuestionEn;
   const cardName = currentReading.card ? (zh ? currentReading.card.nameZh : currentReading.card.nameEn) : "";
+  const cardKeywords = currentReading.card ? getDisplayKeywords(currentReading.card, language) : [];
   const reviewOnly = currentReading.status === "completed" || currentReading.status === "skipped";
   const hasObservation = Boolean(currentReading.userObservation);
   const ultimate = zh
@@ -221,6 +223,11 @@ export default function PositionFocusPage({
                   {hasObservation ? (
                     <>
                       <strong>{cardName}</strong>
+                      <div className="card-keyword-bubbles" aria-label={zh ? "卡牌关键词" : "Card keywords"}>
+                        {cardKeywords.map((keyword) => (
+                          <span key={keyword}>{keyword}</span>
+                        ))}
+                      </div>
                       <span>{zh ? currentReading.card.shortMeaningZh : currentReading.card.shortMeaningEn}</span>
                     </>
                   ) : (
