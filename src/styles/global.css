@@ -2542,10 +2542,11 @@ label {
 }
 
 .online-card-draw-full {
-  min-height: calc(100vh - 170px);
+  min-height: 0;
+  height: clamp(470px, calc(100vh - 360px), 620px);
   align-content: center;
-  gap: clamp(18px, 3vw, 30px);
-  overflow: visible;
+  gap: clamp(12px, 2vw, 22px);
+  overflow: hidden;
 }
 
 .online-draw-copy {
@@ -2554,7 +2555,7 @@ label {
 }
 
 .online-card-draw-full .online-draw-copy {
-  width: min(760px, 100%);
+  width: min(840px, 100%);
   margin: 0 auto;
   justify-items: center;
   text-align: center;
@@ -2584,21 +2585,25 @@ label {
 }
 
 .online-card-fan-scroll {
-  overflow-x: visible;
-  overflow-y: visible;
+  overflow: hidden;
   overscroll-behavior-x: contain;
   padding: 8px 2px 18px;
   scrollbar-width: none;
 }
 
 .online-card-draw-full .online-card-fan-scroll {
-  padding: clamp(20px, 3vw, 34px) 0 clamp(90px, 9vw, 132px);
+  padding: clamp(8px, 2vw, 20px) 0 clamp(46px, 6vw, 82px);
 }
 
 .online-card-draw.has-reveal .online-card-fan-scroll,
 .online-card-draw.has-reveal .online-draw-actions {
   visibility: hidden;
   pointer-events: none;
+}
+
+.online-card-draw-full.has-reveal .online-card-fan-scroll,
+.online-card-draw-full.has-reveal .online-draw-actions {
+  display: none;
 }
 
 .online-card-fan-scroll::-webkit-scrollbar {
@@ -2614,7 +2619,8 @@ label {
 }
 
 .online-card-draw-full .online-card-row {
-  width: min(1440px, 100%);
+  width: 100%;
+  height: clamp(280px, calc(100vh - 470px), var(--fan-height, 380px));
 }
 
 .online-card-back {
@@ -2707,6 +2713,15 @@ label {
   padding: 24px;
   background: rgba(4, 4, 10, 0.72);
   backdrop-filter: blur(16px);
+}
+
+.online-card-draw-full .online-draw-focus-inline {
+  position: relative;
+  inset: auto;
+  z-index: 1;
+  padding: 0;
+  background: transparent;
+  backdrop-filter: none;
 }
 
 .online-draw-focus-card {
@@ -3401,6 +3416,29 @@ label {
 .position-focus-page {
   display: grid;
   gap: 18px;
+}
+
+.position-focus-page-online {
+  position: relative;
+  left: 50%;
+  width: calc(100vw - 56px);
+  max-width: none;
+  min-height: calc(100vh - 210px);
+  margin: 0;
+  overflow: hidden;
+  transform: translateX(-50%);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.online-draw-inline-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.position-focus-page-online .online-card-draw {
+  width: 100%;
 }
 
 .position-focus-header {

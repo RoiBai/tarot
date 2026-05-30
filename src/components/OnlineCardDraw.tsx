@@ -30,11 +30,11 @@ export default function OnlineCardDraw({
   const [isShuffling, setIsShuffling] = useState(false);
   const shuffledCards = useMemo(() => shuffleCards(cards), [cards, seed]);
   const selectedCard = selectedIndex === null ? null : shuffledCards[selectedIndex];
-  const cardWidth = fullPage ? (cards.length > 40 ? 108 : 132) : cards.length > 40 ? 58 : 76;
-  const fanSpread = fullPage ? 124 : cards.length > 40 ? 92 : 80;
-  const maxRotation = fullPage ? 38 : cards.length > 40 ? 30 : 24;
-  const curveDepth = fullPage ? 172 : cards.length > 40 ? 96 : 76;
-  const fanHeight = fullPage ? 520 : cards.length > 40 ? 238 : 210;
+  const cardWidth = fullPage ? (cards.length > 40 ? 100 : 128) : cards.length > 40 ? 58 : 76;
+  const fanSpread = fullPage ? 86 : cards.length > 40 ? 92 : 80;
+  const maxRotation = fullPage ? 32 : cards.length > 40 ? 30 : 24;
+  const curveDepth = fullPage ? 136 : cards.length > 40 ? 96 : 76;
+  const fanHeight = fullPage ? 380 : cards.length > 40 ? 238 : 210;
   const mid = Math.max(1, (shuffledCards.length - 1) / 2);
 
   function resetDraw() {
@@ -100,7 +100,7 @@ export default function OnlineCardDraw({
       </div>
 
       {selectedCard && (
-        <div className="online-draw-focus" role="dialog" aria-modal="true">
+        <div className={`online-draw-focus ${fullPage ? "online-draw-focus-inline" : ""}`} role={fullPage ? "region" : "dialog"} aria-modal={fullPage ? undefined : true}>
           <div className="online-draw-focus-card">
             <button className="icon-action online-draw-close" onClick={() => setSelectedIndex(null)} aria-label={zh ? "关闭翻牌" : "Close revealed card"}>
               <X size={17} />

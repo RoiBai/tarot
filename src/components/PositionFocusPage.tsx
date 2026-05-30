@@ -129,6 +129,33 @@ export default function PositionFocusPage({
     setSelectedChips([]);
   }
 
+  if (drawMode === "online" && !currentReading.card && !reviewOnly) {
+    return (
+      <section className="position-focus-page position-focus-page-online fade-in">
+        <div className="online-draw-inline-top">
+          <button className="ghost-action" onClick={() => setDrawMode("physical")}>
+            <ArrowLeft size={16} />
+            {zh ? "回到实体牌输入" : "Back to physical input"}
+          </button>
+          <button className="ghost-action" onClick={onBackToBoard}>
+            <ArrowLeft size={16} />
+            {zh ? "回到牌阵" : "Back to spread"}
+          </button>
+        </div>
+        <OnlineCardDraw
+          cards={tarotDeck}
+          language={language}
+          revealCardName={false}
+          fullPage
+          title={zh ? "线上抽一张牌" : "Draw one card online"}
+          subtitle={zh ? "如果你手边没有实体牌，可以在这里凭第一感觉选一张牌背。" : "If you do not have your physical deck nearby, choose a face-down card here by feel."}
+          confirmLabel={zh ? "就用这张" : "Use this card"}
+          onCardSelected={selectCard}
+        />
+      </section>
+    );
+  }
+
   return (
     <section className="position-focus-page fade-in">
       <button className="ghost-action" onClick={onBackToBoard}>
@@ -141,29 +168,6 @@ export default function PositionFocusPage({
         <h2>{title}</h2>
         <p>{positionQuestion}</p>
       </header>
-
-      {drawMode === "online" && !currentReading.card && !reviewOnly && (
-        <div className="online-draw-page" role="dialog" aria-modal="true">
-          <div className="online-draw-page-shell">
-            <div className="button-row online-draw-page-top">
-              <button className="ghost-action" onClick={() => setDrawMode("physical")}>
-                <ArrowLeft size={16} />
-                {zh ? "回到实体牌输入" : "Back to physical input"}
-              </button>
-            </div>
-            <OnlineCardDraw
-              cards={tarotDeck}
-              language={language}
-              revealCardName={false}
-              fullPage
-              title={zh ? "线上抽一张牌" : "Draw one card online"}
-              subtitle={zh ? "如果你手边没有实体牌，可以在这里凭第一感觉选一张牌背。" : "If you do not have your physical deck nearby, choose a face-down card here by feel."}
-              confirmLabel={zh ? "就用这张" : "Use this card"}
-              onCardSelected={selectCard}
-            />
-          </div>
-        </div>
-      )}
 
       {reviewOnly ? (
         <section className="position-review-panel tarot-panel">
