@@ -64,6 +64,7 @@ export default function LandingPage({ language, onStart, onOpenSettings, onOpenA
             <section className="feedback-share-section">
               <h3>{copy.feedbackTitle}</h3>
               <p>{copy.feedbackBody}</p>
+              <p>{copy.feedbackInterview}</p>
               <div className="feedback-email-row">
                 <span>{copy.feedbackEmailLabel}</span>
                 <a href={`mailto:${FEEDBACK_EMAIL}`}>{FEEDBACK_EMAIL}</a>
@@ -81,23 +82,26 @@ function landingCopy(language: Language) {
   if (language === "zh") {
     return {
       eyebrow: "reflection, not prediction",
-      title: "先写下此刻的问题。",
-      secondLine: "再让一副牌阵慢慢展开它。",
-      body: "牌不是答案，只是一个入口；每个位置会从一个小角度，陪你把问题看清一点。",
-      start: "开始写问题",
+      title: "先把问题说出来。",
+      secondLine: "再让牌阵慢慢把它展开。",
+      body: "牌不是答案。它们更像入口，每个位置只照亮问题里的一个角度。",
+      start: "带着问题进入牌阵",
       about: "关于这个 Demo",
       aboutTitle: "关于这个研究 Demo",
       aboutBody:
-        "这个版本把自由聊天改成牌阵体验：你先输入问题，选择牌阵，再逐一进入每个位置。每个位置只陪你看一个角度。",
+        "这个版本把原来的自由聊天改成了牌阵体验：你先写下问题，再选择牌阵，之后一张一张进入不同的位置。",
       aboutResearch:
-        "研究问题：结构化牌阵、位置化 AI 对话与实体/线上抽牌输入，如何帮助普通用户拆解、重新理解并重新拥有自己的个人问题？",
+        "研究问题：结构化塔罗牌阵、每个位置的 AI 对话、以及实体或线上抽牌，如何帮助普通用户拆解、重新理解并重新拥有自己的个人问题？",
       feedbackTitle: "把你的体验发给我",
       feedbackBody:
-        "如果你愿意支持这个研究，可以把导出的聊天记录或牌阵 JSON 发给我做分析。我只会使用你主动分享的内容；愿意分享记录的用户可以获得一些 token，用来继续体验这个网站。",
+        "如果你愿意支持这个研究，可以把导出的聊天记录或牌阵 JSON 发给我。我会把它作为研究分析材料。愿意分享对话记录的用户，可以获得一些免费 token，用来继续体验这个网站。你也可以只写下使用感受，不一定要发送完整记录。",
+      feedbackInterview:
+        "如果你愿意和我聊聊这次体验，以及这个问题是怎么被拆开、重新理解的，也可以获得一份小奖励。",
       feedbackEmailLabel: "邮箱",
-      privacyNote: "请只发送你愿意分享的内容。如果记录里有私人信息，可以先删除相关部分，或只发送使用反馈。"
+      privacyNote: "请只发送你愿意分享的内容。如果记录里有私人信息，可以先删除相关部分。"
     };
   }
+
   return {
     eyebrow: "reflection, not prediction",
     title: "Name the question first.",
@@ -107,12 +111,14 @@ function landingCopy(language: Language) {
     about: "About this demo",
     aboutTitle: "About This Research Demo",
     aboutBody:
-      "This version turns the old free chat into a spread experience: the user enters a question, chooses a spread, and moves through positions one by one.",
+      "This version turns the old free chat into a spread experience: you enter a question, choose a spread, and move through positions one by one.",
     aboutResearch:
       "Research question: how can a structured tarot spread, position-specific AI conversations, and physical or online card input help ordinary users decompose, reinterpret, and re-own personal questions?",
-    feedbackTitle: "Share your reading record",
+    feedbackTitle: "Share your experience with me",
     feedbackBody:
-      "If you would like to support this research, you can email me your exported chat record or spread JSON for analysis. I will only use what you choose to share. Participants who share records can receive some tokens to continue using the website.",
+      "If you would like to support this research, you can email me your exported chat record or spread JSON. I may use it as research material for analysis. People who share conversation records can receive some free tokens to keep using the website. You can also send feedback without the full record.",
+    feedbackInterview:
+      "If you are willing to talk with me about the experience and how the question was decomposed or re-understood, you can also receive a small reward.",
     feedbackEmailLabel: "Email",
     privacyNote: "Please send only what you are comfortable sharing. You may remove private details first, or send feedback without the full record."
   };
