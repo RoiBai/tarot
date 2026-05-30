@@ -76,6 +76,13 @@ Depth requirements:
 - You may offer gentle advice or a next focus, but never as a command or prediction.
 - Avoid vague phrases unless immediately grounded. Bad: ${zh ? "“你需要面对内心的阴影。” Good: “这张牌里的倒下杯子更像是在指向你提到的那种失落：你还在看已经失去的部分，但牌面也提醒你，身后仍有两个杯子代表尚未用上的支持。”" : "\"You need to face your shadow.\" Good: \"The spilled cups connect to the disappointment you named; the two standing cups suggest support that is still present but not yet in view.\""}
 
+Compression requirements:
+- Before returning, merge repeated meanings. If two sentences both say "energy/desire/impulse/start/motivation", keep the clearer one and remove the other.
+- Do not explain the same card keyword twice.
+- For a normal response, use at most 2 interpretation points.
+- Keep "response" concise: ${zh ? "90-150 个中文字左右，最多 180 个中文字" : "70-120 English words, maximum 150 words"}.
+- If the card image, card keyword, and user observation point to the same idea, combine them into one sentence instead of listing them separately.
+
 First-response structure:
 1. Start with the card and position in one concrete sentence.
 2. Add one transition sentence that explicitly connects the user's current question to this card/position.
