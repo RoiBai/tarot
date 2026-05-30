@@ -3559,12 +3559,12 @@ label {
 }
 
 .position-message {
-  width: min(680px, 96%);
+  width: min(620px, 96%);
   display: grid;
-  gap: 5px;
+  gap: 10px;
   border: 1px solid rgba(224, 201, 145, 0.16);
   border-radius: 8px;
-  padding: 12px;
+  padding: 13px 14px;
   background: rgba(255, 248, 226, 0.045);
 }
 
@@ -3615,6 +3615,41 @@ label {
 .position-note-block p {
   margin: 0;
   white-space: pre-wrap;
+}
+
+.position-message-content {
+  display: grid;
+  gap: 10px;
+  max-width: 62ch;
+}
+
+.position-message-content p {
+  color: rgba(255, 248, 226, 0.9);
+  font-family: "Noto Serif SC", "EB Garamond", serif;
+  font-size: clamp(1rem, 1.25vw, 1.14rem);
+  line-height: 1.72;
+}
+
+.message-keyword-highlight {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.message-keyword-bubbles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.message-keyword-bubbles span {
+  border: 1px solid rgba(214, 181, 109, 0.34);
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: rgba(214, 181, 109, 0.09);
+  color: var(--gold);
+  font-size: 0.76rem;
+  line-height: 1.2;
 }
 
 .position-chat-composer {

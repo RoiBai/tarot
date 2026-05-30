@@ -1,7 +1,8 @@
 import { RefreshCw, Send, Sparkles } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getEffectiveApiKey, getFreeTrialProxyUrl } from "../lib/storage";
 import { generatePositionAgentResponse } from "../lib/spreadAgentClient";
+import { getDisplayKeywords } from "../lib/tarotCardKnowledge";
 import { createId, nowIso } from "../lib/utils";
 import type { ChatMessage, ChatThread, Language, PositionReading, Settings, SpreadPosition, TarotSpread } from "../types";
 
@@ -38,6 +39,7 @@ export default function PositionAgentChat({
 
   const companionName = zh ? "读牌伙伴" : "Reading companion";
   const initialKey = `${reading.positionId}:${reading.card?.id || ""}:${reading.userObservation || ""}`;
+  const cardKeywords = useMemo(() => (reading.card ? getDisplayKeywords(reading.card, language) : []), [language, reading.card]);
 
   useEffect(() => {
     if (!reading.userObservation || !reading.card || reading.dialogue.length || requestKeyRef.current === initialKey) return;
@@ -166,7 +168,7 @@ export default function PositionAgentChat({
                 </button>
               )}
             </div>
-            <p>{message.content}</p>
+            <MessageContent content={message.content} keywords={message.role === "assistant" ? cardKeywords : []} />
           </article>
         ))}
         {loading && (
@@ -209,4 +211,43 @@ export default function PositionAgentChat({
       </div>
     </section>
   );
+}
+
+function MessageContent({ content, keywords }: { content: string; keywords: string[] }) {
+  const visibleKeywords = keywords.filter((keyword) => content.toLowerCase().includes(keyword.toLowerCase())).slice(0, 6);
+  const paragraphs = content.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean);
+  return (
+    <div className="position-message-content">
+      {paragraphs.map((paragraph, index) => (
+        <p key={`${paragraph.slice(0, 20)}-${index}`}>{highlightKeywords(paragraph, visibleKeywords)}</p>
+      ))}
+      {visibleKeywords.length > 0 && (
+        <div className="message-keyword-bubbles" aria-label="keywords in this response">
+          {visibleKeywords.map((keyword) => (
+            <span key={keyword}>{keyword}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function highlightKeywords(text: string, keywords: string[]): ReactNode[] {
+  if (!keywords.length) return [text];
+  const sorted = [...keywords].sort((a, b) => b.length - a.length);
+  const pattern = new RegExp(`(${sorted.map(escapeRegExp).join("|")})`, "gi");
+  return text.split(pattern).map((part, index) => {
+    const matched = sorted.find((keyword) => keyword.toLowerCase() === part.toLowerCase());
+    return matched ? (
+      <strong className="message-keyword-highlight" key={`${part}-${index}`}>
+        {part}
+      </strong>
+    ) : (
+      part
+    );
+  });
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
