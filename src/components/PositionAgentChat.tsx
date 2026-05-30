@@ -242,11 +242,13 @@ function selectHighlightKeywords(content: string, keywords: string[], language: 
   const generic = language === "zh" ? genericZh : genericEn;
   const normalizedContent = content.toLowerCase();
   const quoted = language === "zh" ? extractQuotedChineseTerms(content) : [];
+  const quotedSet = new Set(quoted);
+  const cardKeywordSet = new Set(keywords);
   return [...new Set([...keywords, ...quoted])]
     .filter((keyword) => {
       const value = keyword.trim();
       if (!value || generic.has(value.toLowerCase())) return false;
-      if (language === "zh" && value.length < 3 && !content.includes(`《${value}》`)) return false;
+      if (language === "zh" && value.length < 3 && !quotedSet.has(value) && !cardKeywordSet.has(value)) return false;
       if (language === "en" && value.length < 5) return false;
       return normalizedContent.includes(value.toLowerCase());
     })
@@ -257,7 +259,7 @@ function selectHighlightKeywords(content: string, keywords: string[], language: 
 function extractQuotedChineseTerms(content: string): string[] {
   const terms: string[] = [];
   for (const match of content.matchAll(/《([^》]{2,12})》/g)) terms.push(match[1]);
-  for (const match of content.matchAll(/[“"]([^”"]{3,12})[”"]/g)) terms.push(match[1]);
+  for (const match of content.matchAll(/[“"]([^”"]{2,12})[”"]/g)) terms.push(match[1]);
   for (const match of content.matchAll(/[\u4e00-\u9fff]{2,8}(?:感|观|边界|价值|成本|策略|规划|耐心|视野|目标|权衡|犹豫|支持)/g)) {
     terms.push(match[0]);
   }
