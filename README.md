@@ -100,6 +100,7 @@ VITE_OPENAI_API_KEY=your_key_here
 VITE_OPENAI_MODEL=gpt-4o
 VITE_OPENAI_BASE_URL=https://api.shubiaobiao.com/v1
 VITE_BASE_PATH=/
+VITE_FREE_TRIAL_PROXY_URL=/api/free-trial-chat
 ```
 
 For GitHub Pages project sites, set:
@@ -114,14 +115,26 @@ The Vite config uses `base: process.env.VITE_BASE_PATH || (process.env.GITHUB_AC
 
 Do not commit `.env.local`. Do not hardcode keys in source files. Do not put a shared or production API key into a public GitHub Pages build.
 
-The app supports two modes:
+The app supports three modes:
 
 - Local private testing: add `VITE_OPENAI_API_KEY` to `.env.local` and run `npm run dev`.
 - Public GitHub Pages demo: users paste their own API key in Settings. The key is stored only in this browser using localStorage or sessionStorage, is masked after saving, is never logged, and is not included in exported chats.
+- Vercel free-trial demo: deploy the frontend and `api/free-trial-chat.js` together on Vercel, then set server-side environment variables there. Visitors without a key can use one free reading session through the Vercel function, while your API key stays server-side.
 
 Production builds do not read `.env.local` API keys by default, which prevents accidental key bundling when deploying a static demo.
 
-For public deployment, the safest production pattern is a backend proxy with authentication and rate limits. This repository keeps the deployed default as a static frontend demo.
+For Vercel, set these as project environment variables:
+
+```bash
+FREE_TRIAL_OPENAI_API_KEY=your_server_side_key_here
+FREE_TRIAL_OPENAI_BASE_URL=https://api.shubiaobiao.com/v1
+FREE_TRIAL_OPENAI_MODEL=gpt-4o
+FREE_TRIAL_MAX_CALLS=40
+FREE_TRIAL_COOKIE_SECRET=replace_with_a_long_random_string
+VITE_FREE_TRIAL_PROXY_URL=/api/free-trial-chat
+```
+
+The free trial is bound to one browser/device by an HttpOnly cookie. Refreshing the page does not reset it; another device can still start its own trial. For stricter abuse prevention across cleared cookies or incognito windows, add a persistent store such as Vercel KV.
 
 ## Build
 

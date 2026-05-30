@@ -1,6 +1,6 @@
 import { Send, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { getEffectiveApiKey } from "../lib/storage";
+import { getEffectiveApiKey, getFreeTrialProxyUrl } from "../lib/storage";
 import { generatePositionAgentResponse } from "../lib/spreadAgentClient";
 import { createId, nowIso } from "../lib/utils";
 import type { ChatMessage, ChatThread, Language, PositionReading, Settings, SpreadPosition, TarotSpread } from "../types";
@@ -56,10 +56,13 @@ export default function PositionAgentChat({
     setClosing(forceCompletion);
     setError("");
     try {
+      const apiKey = getEffectiveApiKey();
       const response = await generatePositionAgentResponse({
-        apiKey: getEffectiveApiKey(),
+        apiKey,
         baseUrl: settings.baseUrl,
         model: settings.model,
+        freeTrialProxyUrl: apiKey ? "" : getFreeTrialProxyUrl(),
+        freeTrialThreadId: thread.id,
         language,
         originalQuestion: thread.originalQuestion,
         spread,

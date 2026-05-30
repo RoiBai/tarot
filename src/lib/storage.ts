@@ -103,6 +103,14 @@ export function getEffectiveApiKey(): string {
   return getRuntimeApiKey() || devEnvApiKey;
 }
 
+export function getFreeTrialProxyUrl(): string {
+  const configured = (import.meta.env.VITE_FREE_TRIAL_PROXY_URL || "").trim();
+  if (configured.toLowerCase() === "off") return "";
+  if (configured) return configured;
+  if (typeof window !== "undefined" && window.location.hostname.endsWith("github.io")) return "";
+  return import.meta.env.PROD ? "/api/free-trial-chat" : "";
+}
+
 export function normalizeThread(thread: ChatThread & { cards?: string[] }): ChatThread {
   if (Array.isArray(thread.spreadCards)) {
     return {

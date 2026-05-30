@@ -2,7 +2,7 @@ import { CheckCircle, Eye, EyeOff, KeyRound, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { generateRealAIResponse } from "../lib/apiClient";
 import { t } from "../lib/i18n";
-import { clearRuntimeApiKey, getEffectiveApiKey, getRuntimeApiKey, hasEnvApiKey, maskApiKey, saveRuntimeApiKey } from "../lib/storage";
+import { clearRuntimeApiKey, getEffectiveApiKey, getFreeTrialProxyUrl, getRuntimeApiKey, hasEnvApiKey, maskApiKey, saveRuntimeApiKey } from "../lib/storage";
 import type { Settings } from "../types";
 
 type Props = {
@@ -18,6 +18,7 @@ export default function ApiKeyPanel({ settings, onChange }: Props) {
   const [savedMask, setSavedMask] = useState(() => maskApiKey(getRuntimeApiKey()));
   const [testing, setTesting] = useState(false);
   const envKeyAvailable = hasEnvApiKey();
+  const freeTrialAvailable = Boolean(getFreeTrialProxyUrl());
   const warning =
     settings.language === "zh"
       ? "公开部署时请不要使用共享或生产 API key。Demo 阶段 key 只会保存在当前浏览器中。"
@@ -87,6 +88,13 @@ export default function ApiKeyPanel({ settings, onChange }: Props) {
         {String(text.apiSettings)}
       </h3>
       <p className="api-warning">{warning}</p>
+      {freeTrialAvailable && !savedMask && !envKeyAvailable && (
+        <p className="notice">
+          {settings.language === "zh"
+            ? "没有自己的 key 也可以先免费体验一次。用完后，可以联系我获取 key/token。"
+            : "You can try one free reading without your own key. After that, contact me for a key/token."}
+        </p>
+      )}
       {envKeyAvailable && (
         <p className="notice">
           {settings.language === "zh"

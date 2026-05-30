@@ -15,6 +15,8 @@ type OpenAIConfig = {
   apiKey: string;
   baseUrl: string;
   model: string;
+  freeTrialProxyUrl?: string;
+  freeTrialThreadId?: string;
 };
 
 type PositionAgentRequest = OpenAIConfig & {
@@ -55,12 +57,23 @@ async function postJsonCompletion(
   maxTokens: number,
   temperature: number
 ): Promise<string> {
-  if (!config.apiKey.trim()) {
+  const apiKey = config.apiKey.trim();
+  const freeTrialProxyUrl = config.freeTrialProxyUrl?.trim() || "";
+
+  if (!apiKey && !freeTrialProxyUrl) {
     throw friendlyError(
       language,
       language === "zh"
         ? "没有可用的 API Key。请在设置中添加，或创建 .env.local 后再试。"
         : "No API key is available. Add one in Settings or create .env.local, then try again."
+    );
+  }
+  if (!apiKey && !config.freeTrialThreadId?.trim()) {
+    throw friendlyError(
+      language,
+      language === "zh"
+        ? "免费体验入口缺少这次牌阵的记录编号。请刷新后从保存的牌阵继续。"
+        : "The free trial is missing this spread session id. Refresh and continue from the saved spread."
     );
   }
 
@@ -79,10 +92,24 @@ async function postJsonCompletion(
   async function send(useJsonFormat: boolean) {
     const nextBody = useJsonFormat ? body : { ...body };
     if (!useJsonFormat) delete nextBody.response_format;
+    if (!apiKey) {
+      return fetch(freeTrialProxyUrl, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          ...nextBody,
+          threadId: config.freeTrialThreadId
+        })
+      });
+    }
+
     return fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${config.apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(nextBody)
@@ -104,6 +131,10 @@ async function postJsonCompletion(
     );
   }
 
+  if (!response.ok) {
+    const message = await readErrorMessage(response);
+    if (message) throw friendlyError(language, message);
+  }
   if (response.status === 401 || response.status === 403) {
     throw friendlyError(language, language === "zh" ? "API Key 无效或没有权限。" : "The API key is invalid or lacks permission.");
   }
@@ -123,6 +154,21 @@ async function postJsonCompletion(
     throw friendlyError(language, language === "zh" ? "AI 返回为空。" : "The AI returned an empty response.");
   }
   return content;
+}
+
+async function readErrorMessage(response: Response): Promise<string> {
+  try {
+    const data = await response.clone().json();
+    const error = (data as { error?: unknown }).error;
+    if (typeof error === "string") return error;
+    if (error && typeof error === "object" && "message" in error) {
+      const message = (error as { message?: unknown }).message;
+      return typeof message === "string" ? message : "";
+    }
+  } catch {
+    // Ignore non-JSON provider errors and keep the existing friendly fallbacks.
+  }
+  return "";
 }
 
 export async function generatePositionAgentResponse(request: PositionAgentRequest): Promise<PositionAgentStructuredResponse> {

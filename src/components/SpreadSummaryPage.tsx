@@ -1,7 +1,7 @@
 import { Download, Home, Save, ScrollText } from "lucide-react";
 import { useState } from "react";
 import { generateReaderSpreadSummary } from "../lib/spreadAgentClient";
-import { getEffectiveApiKey } from "../lib/storage";
+import { getEffectiveApiKey, getFreeTrialProxyUrl } from "../lib/storage";
 import type { ChatThread, Language, Settings, SpreadSummary, TarotSpread } from "../types";
 import SpreadOverviewThumbnail from "./SpreadOverviewThumbnail";
 
@@ -27,10 +27,13 @@ export default function SpreadSummaryPage({ language, settings, thread, spread, 
     setLoading(true);
     setError("");
     try {
+      const apiKey = getEffectiveApiKey();
       const nextSummary = await generateReaderSpreadSummary({
-        apiKey: getEffectiveApiKey(),
+        apiKey,
         baseUrl: settings.baseUrl,
         model: settings.model,
+        freeTrialProxyUrl: apiKey ? "" : getFreeTrialProxyUrl(),
+        freeTrialThreadId: thread.id,
         language,
         originalQuestion: thread.originalQuestion,
         spread,

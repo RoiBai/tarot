@@ -29,5 +29,16 @@ export default tseslint.config(
         fetch: "readonly"
       }
     }
+  },
+  {
+    files: ["api/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+        fetch: "readonly"
+      }
+    }
   }
 );
