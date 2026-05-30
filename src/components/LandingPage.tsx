@@ -1,10 +1,12 @@
 import { Archive, Info, Settings, Sparkles, X } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { t } from "../lib/i18n";
+import { getFreeTrialProxyUrl, getRuntimeApiKey, hasEnvApiKey } from "../lib/storage";
 import { withBase } from "../lib/tarotDeck";
 import type { Language } from "../types";
 
 const FEEDBACK_EMAIL = "roibai0405@gmail.com";
+const FREE_TRIAL_INTRO_KEY = "cmr.freeTrialIntroSeen";
 
 type Props = {
   language: Language;
@@ -17,6 +19,23 @@ export default function LandingPage({ language, onStart, onOpenSettings, onOpenA
   const text = t(language);
   const copy = landingCopy(language);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const shouldShowFreeTrialIntro = useMemo(() => {
+    try {
+      return Boolean(getFreeTrialProxyUrl()) && !getRuntimeApiKey() && !hasEnvApiKey() && localStorage.getItem(FREE_TRIAL_INTRO_KEY) !== "yes";
+    } catch {
+      return false;
+    }
+  }, []);
+  const [freeTrialOpen, setFreeTrialOpen] = useState(shouldShowFreeTrialIntro);
+
+  function closeFreeTrialIntro() {
+    try {
+      localStorage.setItem(FREE_TRIAL_INTRO_KEY, "yes");
+    } catch {
+      // If localStorage is unavailable, simply close the modal for this session.
+    }
+    setFreeTrialOpen(false);
+  }
 
   return (
     <div className="spread-landing fade-in">
@@ -49,6 +68,31 @@ export default function LandingPage({ language, onStart, onOpenSettings, onOpenA
           </button>
         </div>
       </div>
+
+      {freeTrialOpen && (
+        <div className="modal-backdrop" onClick={closeFreeTrialIntro}>
+          <section className="modal free-trial-intro-modal" aria-label={copy.freeTrialTitle} onClick={(event) => event.stopPropagation()}>
+            <div className="modal-title">
+              <p className="ritual-label">{copy.freeTrialLabel}</p>
+              <button className="icon-action" onClick={closeFreeTrialIntro} aria-label={String(text.close)}>
+                <X size={18} />
+              </button>
+            </div>
+            <h2>{copy.freeTrialTitle}</h2>
+            <p>{copy.freeTrialBody}</p>
+            <div className="feedback-email-row">
+              <span>{copy.feedbackEmailLabel}</span>
+              <a href={`mailto:${FEEDBACK_EMAIL}`}>{FEEDBACK_EMAIL}</a>
+            </div>
+            <div className="button-row">
+              <button className="primary-action" onClick={closeFreeTrialIntro}>
+                <Sparkles size={18} />
+                {copy.freeTrialCta}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {aboutOpen && (
         <div className="modal-backdrop" onClick={() => setAboutOpen(false)}>
@@ -98,7 +142,12 @@ function landingCopy(language: Language) {
       feedbackInterview:
         "如果你愿意和我聊聊这次体验，以及这个问题是怎么被拆开、重新理解的，也可以获得一份小奖励。",
       feedbackEmailLabel: "邮箱",
-      privacyNote: "请只发送你愿意分享的内容。如果记录里有私人信息，可以先删除相关部分。"
+      privacyNote: "请只发送你愿意分享的内容。如果记录里有私人信息，可以先删除相关部分。",
+      freeTrialLabel: "demo access",
+      freeTrialTitle: "你有一次免费体验",
+      freeTrialBody:
+        "不用填写 API key，也可以先完整体验一次牌阵。之后如果想继续使用，可以把导出的 JSON 发给我；愿意聊聊这次体验，也可以获得更多 token。",
+      freeTrialCta: "我知道了"
     };
   }
 
@@ -120,6 +169,11 @@ function landingCopy(language: Language) {
     feedbackInterview:
       "If you are willing to talk with me about the experience and how the question was decomposed or re-understood, you can also receive a small reward.",
     feedbackEmailLabel: "Email",
-    privacyNote: "Please send only what you are comfortable sharing. You may remove private details first, or send feedback without the full record."
+    privacyNote: "Please send only what you are comfortable sharing. You may remove private details first, or send feedback without the full record.",
+    freeTrialLabel: "demo access",
+    freeTrialTitle: "You have one free reading",
+    freeTrialBody:
+      "You can try one full spread without entering an API key. To continue later, email me your exported JSON; sharing a short interview about the experience can also earn more tokens.",
+    freeTrialCta: "Got it"
   };
 }

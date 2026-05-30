@@ -17,8 +17,11 @@ function download(filename: string, content: string, type: string) {
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function exportText(thread: ChatThread, language: Language): string {
@@ -88,14 +91,14 @@ export default function SavedChatsPanel({ language, threads, onClose, onReopen, 
                   </button>
                   <button
                     className="ghost-action"
-                    onClick={() => download(`${thread.id}.json`, JSON.stringify(thread, null, 2), "application/json")}
+                    onClick={() => download(`${thread.id}.json`, JSON.stringify(thread, null, 2), "application/json;charset=utf-8")}
                   >
                     <Download size={16} />
                     {String(text.exportJson)}
                   </button>
                   <button
                     className="ghost-action"
-                    onClick={() => download(`${thread.id}.txt`, exportText(thread, language), "text/plain")}
+                    onClick={() => download(`${thread.id}.txt`, exportText(thread, language), "text/plain;charset=utf-8")}
                   >
                     <FileText size={16} />
                     {String(text.exportText)}
