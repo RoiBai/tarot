@@ -3625,9 +3625,9 @@ label {
 
 .position-message-content p {
   color: rgba(255, 248, 226, 0.9);
-  font-family: "Noto Serif SC", "EB Garamond", serif;
-  font-size: 0.96rem;
-  line-height: 1.52;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.5;
 }
 
 .message-keyword-highlight {
