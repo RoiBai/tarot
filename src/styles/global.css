@@ -408,6 +408,13 @@ time {
   background: rgba(255, 255, 255, 0.045);
 }
 
+.feedback-email-row a {
+  color: var(--gold);
+  font-weight: 700;
+  text-decoration-color: rgba(224, 201, 145, 0.5);
+  text-underline-offset: 3px;
+}
+
 .feedback-email-row code,
 .feedback-share-section code {
   color: var(--ivory);

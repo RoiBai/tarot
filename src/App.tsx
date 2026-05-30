@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import BreathingBall from "./components/BreathingBall";
 import LandingPage from "./components/LandingPage";
 import LanguageToggle from "./components/LanguageToggle";
 import LayoutShell from "./components/LayoutShell";
@@ -17,7 +16,7 @@ import { deleteThread, loadSettings, loadThreads, saveSettings, upsertThread } f
 import { createId, nowIso, titleFromQuestion } from "./lib/utils";
 import type { ChatThread, PositionReading, Settings, SpreadId, TarotSpread } from "./types";
 
-type View = "landing" | "breathing" | "question" | "spreadSelection" | "board" | "focus" | "summary" | "legacyChat";
+type View = "landing" | "question" | "spreadSelection" | "board" | "focus" | "summary" | "legacyChat";
 
 export default function App() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
@@ -154,17 +153,9 @@ export default function App() {
       {view === "landing" && (
         <LandingPage
           language={settings.language}
-          onStart={() => setView("breathing")}
+          onStart={() => setView("question")}
           onOpenArchive={() => setArchiveOpen(true)}
           onOpenSettings={() => setSettingsOpen(true)}
-        />
-      )}
-
-      {view === "breathing" && (
-        <BreathingBall
-          language={settings.language}
-          onComplete={() => setView("question")}
-          onSkip={() => setView("question")}
         />
       )}
 
