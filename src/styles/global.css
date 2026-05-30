@@ -2553,6 +2553,13 @@ label {
   overflow: hidden;
 }
 
+.online-card-draw-full.has-reveal {
+  height: auto;
+  min-height: calc(100vh - 320px);
+  align-content: start;
+  overflow: visible;
+}
+
 .online-draw-copy {
   display: grid;
   gap: 4px;
@@ -2723,6 +2730,7 @@ label {
   position: relative;
   inset: auto;
   z-index: 1;
+  align-self: start;
   padding: 0;
   background: transparent;
   backdrop-filter: none;
@@ -3430,7 +3438,7 @@ label {
   min-height: calc(100vh - 210px);
   margin: 0;
   margin-left: calc(50% - 50vw + var(--shell-pad));
-  overflow: hidden;
+  overflow: visible;
   transform: none;
   grid-template-rows: auto minmax(0, 1fr);
 }
