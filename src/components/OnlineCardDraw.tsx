@@ -30,11 +30,11 @@ export default function OnlineCardDraw({
   const [isShuffling, setIsShuffling] = useState(false);
   const shuffledCards = useMemo(() => shuffleCards(cards), [cards, seed]);
   const selectedCard = selectedIndex === null ? null : shuffledCards[selectedIndex];
-  const cardWidth = fullPage ? (cards.length > 40 ? 76 : 92) : cards.length > 40 ? 58 : 76;
-  const fanSpread = fullPage ? 104 : cards.length > 40 ? 92 : 80;
-  const maxRotation = fullPage ? 34 : cards.length > 40 ? 30 : 24;
-  const curveDepth = fullPage ? 128 : cards.length > 40 ? 96 : 76;
-  const fanHeight = fullPage ? 340 : cards.length > 40 ? 238 : 210;
+  const cardWidth = fullPage ? (cards.length > 40 ? 108 : 132) : cards.length > 40 ? 58 : 76;
+  const fanSpread = fullPage ? 124 : cards.length > 40 ? 92 : 80;
+  const maxRotation = fullPage ? 38 : cards.length > 40 ? 30 : 24;
+  const curveDepth = fullPage ? 172 : cards.length > 40 ? 96 : 76;
+  const fanHeight = fullPage ? 520 : cards.length > 40 ? 238 : 210;
   const mid = Math.max(1, (shuffledCards.length - 1) / 2);
 
   function resetDraw() {

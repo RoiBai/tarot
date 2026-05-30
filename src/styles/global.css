@@ -2542,7 +2542,7 @@ label {
 }
 
 .online-card-draw-full {
-  min-height: min(720px, calc(100vh - 210px));
+  min-height: calc(100vh - 170px);
   align-content: center;
   gap: clamp(18px, 3vw, 30px);
   overflow: visible;
@@ -2592,7 +2592,7 @@ label {
 }
 
 .online-card-draw-full .online-card-fan-scroll {
-  padding: clamp(18px, 3vw, 28px) 0 clamp(60px, 7vw, 92px);
+  padding: clamp(20px, 3vw, 34px) 0 clamp(90px, 9vw, 132px);
 }
 
 .online-card-draw.has-reveal .online-card-fan-scroll,
@@ -2614,7 +2614,7 @@ label {
 }
 
 .online-card-draw-full .online-card-row {
-  width: min(1120px, 100%);
+  width: min(1440px, 100%);
 }
 
 .online-card-back {
@@ -2701,7 +2701,7 @@ label {
 .online-draw-focus {
   position: fixed;
   inset: 0;
-  z-index: 180;
+  z-index: 280;
   display: grid;
   place-items: center;
   padding: 24px;
@@ -2809,28 +2809,24 @@ label {
 .online-draw-page {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 240;
   overflow: auto;
-  padding: clamp(16px, 4vw, 48px);
+  padding: clamp(14px, 3vw, 34px);
   background:
-    radial-gradient(circle at 50% 20%, rgba(200, 189, 242, 0.08), transparent 34%),
-    rgba(4, 4, 10, 0.84);
+    radial-gradient(circle at 50% 18%, rgba(224, 201, 145, 0.11), transparent 34%),
+    radial-gradient(circle at 50% 65%, rgba(200, 189, 242, 0.08), transparent 36%),
+    rgba(4, 4, 10, 0.92);
   backdrop-filter: blur(16px);
 }
 
 .online-draw-page-shell {
-  width: min(1220px, 100%);
-  min-height: calc(100vh - 96px);
+  width: min(1560px, 100%);
+  min-height: calc(100vh - clamp(28px, 6vw, 68px));
   margin: 0 auto;
   display: grid;
   align-content: center;
-  gap: 18px;
-  border: 1px solid rgba(224, 201, 145, 0.22);
-  border-radius: 8px;
-  padding: clamp(18px, 4vw, 34px);
-  background:
-    linear-gradient(180deg, rgba(14, 12, 24, 0.9), rgba(8, 8, 16, 0.86)),
-    radial-gradient(circle at 50% 0%, rgba(224, 201, 145, 0.08), transparent 42%);
+  gap: clamp(18px, 3vw, 34px);
+  padding: clamp(10px, 2vw, 22px);
 }
 
 .online-draw-page-top {
