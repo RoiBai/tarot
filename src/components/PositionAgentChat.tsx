@@ -259,9 +259,9 @@ function selectHighlightKeywords(content: string, keywords: string[], language: 
 function extractQuotedChineseTerms(content: string): string[] {
   const terms: string[] = [];
   for (const match of content.matchAll(/《([^》]{2,12})》/g)) terms.push(match[1]);
-  for (const match of content.matchAll(/[“"]([^”"]{2,12})[”"]/g)) terms.push(match[1]);
-  for (const match of content.matchAll(/[\u4e00-\u9fff]{2,8}(?:感|观|边界|价值|成本|策略|规划|耐心|视野|目标|权衡|犹豫|支持)/g)) {
-    terms.push(match[0]);
+  for (const match of content.matchAll(/[“"]([^”"]{2,4})[”"]/g)) {
+    const value = match[1].trim();
+    if (/^[\u4e00-\u9fffA-Za-z0-9]+$/.test(value)) terms.push(value);
   }
   return terms;
 }
