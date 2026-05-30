@@ -131,10 +131,13 @@ FREE_TRIAL_OPENAI_BASE_URL=https://api.shubiaobiao.com/v1
 FREE_TRIAL_OPENAI_MODEL=gpt-4o
 FREE_TRIAL_MAX_CALLS=40
 FREE_TRIAL_COOKIE_SECRET=replace_with_a_long_random_string
-VITE_FREE_TRIAL_PROXY_URL=/api/free-trial-chat
+VITE_BASE_PATH=./
+VITE_FREE_TRIAL_PROXY_URL=./api/free-trial-chat
 ```
 
 The free trial is bound to one browser/device by an HttpOnly cookie. Refreshing the page does not reset it; another device can still start its own trial. For stricter abuse prevention across cleared cookies or incognito windows, add a persistent store such as Vercel KV.
+
+Use the relative `./` paths when this Vercel project is displayed under another site path, such as `/art/tarot-site/demo/`, through a rewrite from a personal website project.
 
 ## Build
 
