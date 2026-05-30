@@ -41,10 +41,12 @@ p {
 }
 
 .app-shell {
+  --shell-pad: 28px;
+  --shell-pad-double: 56px;
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  padding: 28px;
+  padding: var(--shell-pad);
 }
 
 .app-content {
@@ -2197,7 +2199,9 @@ label {
 
 @media (max-width: 820px) {
   .app-shell {
-    padding: 16px;
+    --shell-pad: 16px;
+    --shell-pad-double: 32px;
+    padding: var(--shell-pad);
     padding-bottom: 92px;
   }
 
@@ -3420,13 +3424,14 @@ label {
 
 .position-focus-page-online {
   position: relative;
-  left: 50%;
-  width: calc(100vw - 56px);
+  left: auto;
+  width: calc(100vw - var(--shell-pad-double));
   max-width: none;
   min-height: calc(100vh - 210px);
   margin: 0;
+  margin-left: calc(50% - 50vw + var(--shell-pad));
   overflow: hidden;
-  transform: translateX(-50%);
+  transform: none;
   grid-template-rows: auto minmax(0, 1fr);
 }
 
