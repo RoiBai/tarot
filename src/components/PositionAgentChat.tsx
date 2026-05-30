@@ -168,7 +168,7 @@ export default function PositionAgentChat({
                 </button>
               )}
             </div>
-            <MessageContent content={message.content} keywords={message.role === "assistant" ? cardKeywords : []} />
+            <MessageContent content={message.content} keywords={message.role === "assistant" ? cardKeywords : []} language={language} />
           </article>
         ))}
         {loading && (
@@ -213,9 +213,9 @@ export default function PositionAgentChat({
   );
 }
 
-function MessageContent({ content, keywords }: { content: string; keywords: string[] }) {
-  const visibleKeywords = keywords.filter((keyword) => content.toLowerCase().includes(keyword.toLowerCase())).slice(0, 6);
-  const paragraphs = content.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean);
+function MessageContent({ content, keywords, language }: { content: string; keywords: string[]; language: Language }) {
+  const visibleKeywords = selectHighlightKeywords(content, keywords, language);
+  const paragraphs = splitReadableParagraphs(content);
   return (
     <div className="position-message-content">
       {paragraphs.map((paragraph, index) => (
@@ -232,12 +232,28 @@ function MessageContent({ content, keywords }: { content: string; keywords: stri
   );
 }
 
+function selectHighlightKeywords(content: string, keywords: string[], language: Language): string[] {
+  const genericZh = new Set(["选择", "关系", "感受", "问题", "方向", "状态", "可能", "机会", "压力", "未来", "现在", "过去", "需要"]);
+  const genericEn = new Set(["choice", "feeling", "question", "direction", "state", "possible", "opportunity", "pressure", "future", "present", "past", "need"]);
+  const generic = language === "zh" ? genericZh : genericEn;
+  const normalizedContent = content.toLowerCase();
+  return [...new Set(keywords)]
+    .filter((keyword) => {
+      const value = keyword.trim();
+      if (!value || generic.has(value.toLowerCase())) return false;
+      if (language === "zh" && value.length < 3) return false;
+      if (language === "en" && value.length < 5) return false;
+      return normalizedContent.includes(value.toLowerCase());
+    })
+    .sort((a, b) => b.length - a.length)
+    .slice(0, 4);
+}
+
 function highlightKeywords(text: string, keywords: string[]): ReactNode[] {
   if (!keywords.length) return [text];
-  const sorted = [...keywords].sort((a, b) => b.length - a.length);
-  const pattern = new RegExp(`(${sorted.map(escapeRegExp).join("|")})`, "gi");
+  const pattern = new RegExp(`(${keywords.map(escapeRegExp).join("|")})`, "gi");
   return text.split(pattern).map((part, index) => {
-    const matched = sorted.find((keyword) => keyword.toLowerCase() === part.toLowerCase());
+    const matched = keywords.some((keyword) => keyword.toLowerCase() === part.toLowerCase());
     return matched ? (
       <strong className="message-keyword-highlight" key={`${part}-${index}`}>
         {part}
@@ -250,4 +266,27 @@ function highlightKeywords(text: string, keywords: string[]): ReactNode[] {
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function splitReadableParagraphs(content: string): string[] {
+  const existing = content.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean);
+  const result: string[] = [];
+  for (const paragraph of existing) {
+    if (paragraph.length <= 120) {
+      result.push(paragraph);
+      continue;
+    }
+    const sentences = paragraph.match(/[^。！？!?]+[。！？!?]?/g)?.map((sentence) => sentence.trim()).filter(Boolean) || [paragraph];
+    let bucket = "";
+    for (const sentence of sentences) {
+      if (bucket && `${bucket}${sentence}`.length > 110) {
+        result.push(bucket);
+        bucket = sentence;
+      } else {
+        bucket += sentence;
+      }
+    }
+    if (bucket) result.push(bucket);
+  }
+  return result;
 }

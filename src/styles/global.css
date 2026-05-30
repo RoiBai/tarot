@@ -3559,9 +3559,9 @@ label {
 }
 
 .position-message {
-  width: min(620px, 96%);
+  width: min(640px, 96%);
   display: grid;
-  gap: 10px;
+  gap: 8px;
   border: 1px solid rgba(224, 201, 145, 0.16);
   border-radius: 8px;
   padding: 13px 14px;
@@ -3619,15 +3619,15 @@ label {
 
 .position-message-content {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   max-width: 62ch;
 }
 
 .position-message-content p {
   color: rgba(255, 248, 226, 0.9);
   font-family: "Noto Serif SC", "EB Garamond", serif;
-  font-size: clamp(1rem, 1.25vw, 1.14rem);
-  line-height: 1.72;
+  font-size: 1.04rem;
+  line-height: 1.58;
 }
 
 .message-keyword-highlight {
@@ -3639,7 +3639,7 @@ label {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding-top: 2px;
+  padding-top: 4px;
 }
 
 .message-keyword-bubbles span {
