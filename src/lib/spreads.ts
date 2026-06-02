@@ -17,8 +17,8 @@ const oneCardDeepDive: TarotSpread = {
       order: 1,
       titleZh: "当前问题的入口",
       titleEn: "Doorway into the Question",
-      positionQuestionZh: "这个问题最先想让你看见什么？",
-      positionQuestionEn: "What does this question first want you to notice?",
+      positionQuestionZh: "这件事最先该看哪一块？",
+      positionQuestionEn: "What part should you look at first?",
       agentGoalZh:
         "你只负责帮助用户找到这个问题的入口。请把用户的原问题、之前所有输入、这张牌的画面细节和当前牌位放在一起看，但只聚焦一个小入口：这个问题现在最需要被靠近的部分是什么。不要泛泛谈人生，不要直接给最终答案。可以点明一两个具体方向，但要保持开放。",
       agentGoalEn:
@@ -43,8 +43,8 @@ const twoChoice: TarotSpread = {
       order: 1,
       titleZh: "求问者当前状态",
       titleEn: "The querent's current state",
-      positionQuestionZh: "当你站在 A/B 选择前，你自己处在什么状态里？",
-      positionQuestionEn: "What state are you in as you stand before this choice?",
+      positionQuestionZh: "面对 A/B，你现在是什么状态？",
+      positionQuestionEn: "What state are you in with A/B?",
       agentGoalZh:
         "你只负责观察求问者当前状态。必须结合：1. 用户提出的原问题；2. 用户在本次对话里所有输入；3. A/B 的具体内容；4. 当前牌位问题；5. 当前抽到的牌和用户看到的画面。请细致分析用户面对选择时的位置、情绪、身体反应、动机、犹豫和隐含标准。不要替用户选 A 或 B，但可以点出：用户可能正在被什么拉住、避开什么、真正想确认什么。",
       agentGoalEn:
@@ -56,8 +56,8 @@ const twoChoice: TarotSpread = {
       order: 2,
       titleZh: "A 选项周围的情况",
       titleEn: "The situation around option A",
-      positionQuestionZh: "如果靠近 A，什么正在向你移动？",
-      positionQuestionEn: "When choosing option A, what is moving toward you?",
+      positionQuestionZh: "选 A 会带来什么？",
+      positionQuestionEn: "What would option A bring?",
       agentGoalZh:
         "你只负责从 A 选项的角度看问题。请结合原问题、所有用户输入、A 的具体内容、当前牌和牌位，分析 A 带来的吸引、压力、期待、代价、机会、风险、未说出口的理由和用户对 A 的投射。不要比较 B，除非是为了说明 A 的边界。",
       agentGoalEn:
@@ -69,8 +69,8 @@ const twoChoice: TarotSpread = {
       order: 3,
       titleZh: "B 选项周围的情况",
       titleEn: "The situation around option B",
-      positionQuestionZh: "如果靠近 B，什么正在向你移动？",
-      positionQuestionEn: "When choosing option B, what is moving toward you?",
+      positionQuestionZh: "选 B 会带来什么？",
+      positionQuestionEn: "What would option B bring?",
       agentGoalZh:
         "你只负责从 B 选项的角度看问题。请结合原问题、所有用户输入、B 的具体内容、当前牌和牌位，分析 B 带来的吸引、压力、期待、代价、机会、风险、未说出口的理由和用户对 B 的投射。不要比较 A，除非是为了说明 B 的边界。",
       agentGoalEn:
@@ -82,8 +82,8 @@ const twoChoice: TarotSpread = {
       order: 4,
       titleZh: "A 可能放大的方向",
       titleEn: "How option A may develop",
-      positionQuestionZh: "如果继续走向 A，这条路可能让你看见什么？",
-      positionQuestionEn: "If you keep walking with option A, what might this path bring into view?",
+      positionQuestionZh: "走 A 这边，接下来要留意什么？",
+      positionQuestionEn: "With option A, what should you notice next?",
       agentGoalZh:
         "你只负责观察 A 的发展方向。不要预测未来。请根据原问题、用户输入、A 的具体内容、当前牌与已完成牌位，说明如果当前模式继续，A 可能放大的主题、节奏、成本、机会、关系变化或自我要求。可以给出温和建议，但要用“可能”“值得留意”而不是绝对判断。",
       agentGoalEn:
@@ -95,8 +95,8 @@ const twoChoice: TarotSpread = {
       order: 5,
       titleZh: "B 可能放大的方向",
       titleEn: "How option B may develop",
-      positionQuestionZh: "如果继续走向 B，这条路可能让你看见什么？",
-      positionQuestionEn: "If you keep walking with option B, what might this path bring into view?",
+      positionQuestionZh: "走 B 这边，接下来要留意什么？",
+      positionQuestionEn: "With option B, what should you notice next?",
       agentGoalZh:
         "你只负责观察 B 的发展方向。不要预测未来。请根据原问题、用户输入、B 的具体内容、当前牌与已完成牌位，说明如果当前模式继续，B 可能放大的主题、节奏、成本、机会、关系变化或自我要求。可以给出温和建议，但要用“可能”“值得留意”而不是绝对判断。",
       agentGoalEn:
@@ -121,8 +121,8 @@ const pastPresentFuture: TarotSpread = {
       order: 1,
       titleZh: "过去：问题从哪里来",
       titleEn: "Past: where did this question come from?",
-      positionQuestionZh: "这个问题从什么痕迹、事件或旧模式里长出来？",
-      positionQuestionEn: "Where did this question come from?",
+      positionQuestionZh: "这件事是从哪里开始变重的？",
+      positionQuestionEn: "Where did this start to feel heavier?",
       agentGoalZh:
         "你只负责观察问题的来源。结合原问题、所有用户输入、当前牌和用户看到的画面，寻找过去的痕迹、旧解释、重复模式、未完成情绪或已经积累的东西。不要把过去说成命运，只说明它如何仍在影响现在。",
       agentGoalEn:
@@ -134,8 +134,8 @@ const pastPresentFuture: TarotSpread = {
       order: 2,
       titleZh: "现在：问题如何出现",
       titleEn: "Present: how is it appearing now?",
-      positionQuestionZh: "这个问题现在以什么场景、关系、身体感受或矛盾出现？",
-      positionQuestionEn: "How is it appearing now?",
+      positionQuestionZh: "它现在具体卡在哪里？",
+      positionQuestionEn: "Where is it stuck right now?",
       agentGoalZh:
         "你只负责观察问题的当前状态。结合原问题、所有用户输入、当前牌和用户看到的画面，分析现在可见的场景、身体反应、关系位置、阻力、矛盾和用户正在承受的具体压力。请避免抽象词堆叠，要落到用户已说过的内容。",
       agentGoalEn:
@@ -147,8 +147,8 @@ const pastPresentFuture: TarotSpread = {
       order: 3,
       titleZh: "可能走向：如果模式继续",
       titleEn: "Future: where might it go if this continues?",
-      positionQuestionZh: "如果当前模式继续，它可能把你的注意力带向哪里？",
-      positionQuestionEn: "If this continues, where might it lead your attention?",
+      positionQuestionZh: "如果继续这样，接下来最该留意什么？",
+      positionQuestionEn: "If this continues, what should you notice next?",
       agentGoalZh:
         "你只负责观察可能走向。不要预测未来。结合原问题、所有用户输入、当前牌和前两个牌位，说明如果现在的模式继续，可能先浮现什么主题、选择、代价、机会或需要被看见的部分。可以给出方向提示，但不要说成必然。",
       agentGoalEn:
@@ -164,8 +164,8 @@ const celticPositions: SpreadPosition[] = [
     order: 1,
     titleZh: "当前核心",
     titleEn: "Present Situation / Core of the Question",
-    positionQuestionZh: "这个问题现在真正的形状是什么？",
-    positionQuestionEn: "What is the real shape of this question as it appears now?",
+    positionQuestionZh: "这件事现在最核心的部分是什么？",
+    positionQuestionEn: "What is the core of this right now?",
     agentGoalZh: "你只负责当前核心：问题现在可见的状态、张力、事实和用户站在其中的位置。请用用户输入和当前牌把核心说具体。",
     agentGoalEn: "Focus only on the present core: the visible state, tension, facts, and where the user stands inside it. Use the user's words and this card to make the core concrete.",
     layout: { x: 34, y: 50 }
@@ -175,8 +175,8 @@ const celticPositions: SpreadPosition[] = [
     order: 2,
     titleZh: "阻碍 / 交叉影响",
     titleEn: "Obstacle / Crossing Influence",
-    positionQuestionZh: "什么横在这个问题中间？",
-    positionQuestionEn: "What is crossing the middle of this question?",
+    positionQuestionZh: "现在最卡住你的是什么？",
+    positionQuestionEn: "What is blocking this right now?",
     agentGoalZh: "你只负责交叉影响：阻碍、摩擦、矛盾、压力或让事情卡住的条件。不要解决它，先把它看清楚。",
     agentGoalEn: "Focus only on the crossing influence: obstacle, friction, contradiction, pressure, or the condition that blocks movement. Do not solve it too quickly; first make it visible.",
     layout: { x: 34, y: 50, rotate: 90, overlap: true }
@@ -186,8 +186,8 @@ const celticPositions: SpreadPosition[] = [
     order: 3,
     titleZh: "根基 / 隐藏基础",
     titleEn: "Root / Hidden Foundation",
-    positionQuestionZh: "这个问题底下更深的根是什么？",
-    positionQuestionEn: "What deeper root is underneath this question?",
+    positionQuestionZh: "这件事下面还有什么原因？",
+    positionQuestionEn: "What else is underneath this?",
     agentGoalZh: "你只负责根基：未说出口的恐惧、旧信念、身体压力、情绪来源或未命名的需要。请从牌面和用户输入推测，但保持开放。",
     agentGoalEn: "Focus only on the root: unspoken fear, old belief, bodily pressure, emotional source, or unnamed need. Infer from the card and user input while staying open.",
     layout: { x: 34, y: 78 }
@@ -197,8 +197,8 @@ const celticPositions: SpreadPosition[] = [
     order: 4,
     titleZh: "过去影响",
     titleEn: "Past Influence",
-    positionQuestionZh: "过去的什么仍在影响这个问题？",
-    positionQuestionEn: "What from the past is still influencing this question?",
+    positionQuestionZh: "过去的什么还在影响它？",
+    positionQuestionEn: "What from the past still affects this?",
     agentGoalZh: "你只负责过去影响：旧事件、记忆、重复解释、未完成情绪或曾经形成的防御方式。",
     agentGoalEn: "Focus only on past influence: previous events, memories, repeated interpretations, unfinished emotions, or defenses formed before.",
     layout: { x: 17, y: 50 }
@@ -208,8 +208,8 @@ const celticPositions: SpreadPosition[] = [
     order: 5,
     titleZh: "显意识目标",
     titleEn: "Conscious Aim / What the User Thinks They Want",
-    positionQuestionZh: "你以为自己最想要什么？",
-    positionQuestionEn: "What do you believe you want most?",
+    positionQuestionZh: "你现在最想要的是什么？",
+    positionQuestionEn: "What do you want most right now?",
     agentGoalZh: "你只负责显意识目标：用户能说出口的愿望、目标、理想、证明自己的方式，或讲给自己的故事。",
     agentGoalEn: "Focus only on conscious aim: the wish, goal, ideal, self-proof, or story the user can name.",
     layout: { x: 34, y: 22 }
@@ -219,8 +219,8 @@ const celticPositions: SpreadPosition[] = [
     order: 6,
     titleZh: "近期发展",
     titleEn: "Near Development",
-    positionQuestionZh: "如果问题继续展开，最先可能出现什么可见变化？",
-    positionQuestionEn: "If this question keeps unfolding, what visible shift may appear first?",
+    positionQuestionZh: "接下来最可能先变的是什么？",
+    positionQuestionEn: "What may shift first next?",
     agentGoalZh: "你只负责近期发展。不要预测未来，只观察如果当前模式继续，下一层可见变化、新张力或先露出的部分。",
     agentGoalEn: "Focus only on near development. Do not predict the future; observe the next visible shift, new tension, or first emerging layer if the current pattern continues.",
     layout: { x: 51, y: 50 }
@@ -230,8 +230,8 @@ const celticPositions: SpreadPosition[] = [
     order: 7,
     titleZh: "用户自身位置",
     titleEn: "The User's Own Position",
-    positionQuestionZh: "你如何参与了这个问题？",
-    positionQuestionEn: "Where do you stand inside this question?",
+    positionQuestionZh: "你在这件事里扮演什么角色？",
+    positionQuestionEn: "What role are you playing in this?",
     agentGoalZh: "你只负责用户自身位置：态度、能动性、回避、欲望、自我形象或正在扮演的角色。请把它说得具体但不责备。",
     agentGoalEn: "Focus only on the user's own position: attitude, agency, avoidance, desire, self-image, or role. Be concrete without blaming.",
     layout: { x: 78, y: 85 }
@@ -241,8 +241,8 @@ const celticPositions: SpreadPosition[] = [
     order: 8,
     titleZh: "外部影响",
     titleEn: "External Influence / Others or Systems",
-    positionQuestionZh: "哪些外部力量围绕着这个问题？",
-    positionQuestionEn: "What external forces surround this question?",
+    positionQuestionZh: "外部有哪些人或条件在影响它？",
+    positionQuestionEn: "What outside people or conditions affect this?",
     agentGoalZh: "你只负责外部影响：人、关系、系统、期待、环境、社会规则或物质条件。不要把外部影响全部心理化。",
     agentGoalEn: "Focus only on external influence: people, relationships, systems, expectations, environment, social rules, or material conditions. Do not turn all external pressure into inner psychology.",
     layout: { x: 78, y: 61 }
@@ -252,8 +252,8 @@ const celticPositions: SpreadPosition[] = [
     order: 9,
     titleZh: "希望与恐惧",
     titleEn: "Hopes and Fears",
-    positionQuestionZh: "你最希望什么，又最害怕什么？",
-    positionQuestionEn: "What do you most hope for, and what do you most fear?",
+    positionQuestionZh: "你最期待什么？最担心什么？",
+    positionQuestionEn: "What do you hope for? What do you fear?",
     agentGoalZh: "你只负责希望与恐惧：渴望和害怕之间的张力。不要急着化解它，先让两边都被听见。",
     agentGoalEn: "Focus only on hopes and fears: the tension between longing and fear. Do not resolve it too quickly; let both sides be heard.",
     layout: { x: 78, y: 37 }
@@ -263,8 +263,8 @@ const celticPositions: SpreadPosition[] = [
     order: 10,
     titleZh: "可能结果 / 浮现方向",
     titleEn: "Possible Outcome / Emerging Direction",
-    positionQuestionZh: "当整副牌阵被一起看见时，什么方向正在浮现？",
-    positionQuestionEn: "When the whole spread is held together, what direction is appearing now?",
+    positionQuestionZh: "把牌放在一起看，方向是什么？",
+    positionQuestionEn: "Seen together, what direction appears?",
     agentGoalZh: "你只负责可能结果。不要预测命运。请综合前面所有位置，只说当前牌阵正在聚向的方向、主题和下一步值得留意的地方。",
     agentGoalEn: "Focus only on possible outcome. Do not predict fate. Synthesize previous positions only to name the direction, theme, and next thing worth noticing.",
     layout: { x: 78, y: 13 }
