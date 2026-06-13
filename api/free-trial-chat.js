@@ -4,7 +4,7 @@ const COOKIE_NAME = "cmr_free_trial";
 const DEFAULT_MAX_CALLS = 40;
 const DEFAULT_MAX_TOKENS = 2200;
 const DEFAULT_MODEL = "gpt-4o";
-const DEFAULT_BASE_URL = "https://api.openai.com/v1";
+const DEFAULT_BASE_URL = "https://maimai.it.com";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 180;
 
 export default async function handler(request, response) {
